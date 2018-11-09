@@ -1,6 +1,6 @@
 ---
 title: "predicting_westnile"
-author: "Camron Pearce, Amy Fox, Alyssa Melvin"
+author: "Camron Pearce, Amy Fox, Alyssa Melvin, Kayla Williams"
 date: "November 7, 2018"
 output: html_document
 ---
