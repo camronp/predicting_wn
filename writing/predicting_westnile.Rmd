@@ -10,12 +10,18 @@ knitr::opts_chunk$set(echo = TRUE)
 ```
 
 
-```{r}
+```{r data}
 library(readr)
 
 mosquito_data <- read_csv("../data/Chicago_WNV_Mosquito_Test_Results.csv")
 
 head(mosquito_data)
+
+```
+
+```{r noaakey}
+
+options("noaakey" = Sys.getenv("noaakey"))
 
 ```
 
