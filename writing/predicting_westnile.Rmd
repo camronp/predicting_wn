@@ -12,11 +12,12 @@ knitr::opts_chunk$set(echo = TRUE)
 Read in mosquito data
 ```{r}
 library(readr)
+```
 
-mosquito_data <- read_csv("../data/Chicago_WNV_Mosquito_Test_Results.csv")
+```{r}
+mosquito_data <- read_csv("https://data.cityofchicago.org/api/views/jqe8-8r6s/rows.csv?accessType=DOWNLOAD")
 
 head(mosquito_data)
-
 ```
 
 Read in storm data
