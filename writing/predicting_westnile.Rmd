@@ -9,11 +9,14 @@ output: html_document
 knitr::opts_chunk$set(echo = TRUE)
 ```
 
-Read in mosquito data
+
+
 ```{r}
+
 library(readr)
 library(dplyr)
 library(lubridate)
+
 ```
 
 ```{r}
@@ -36,5 +39,11 @@ storms_2017 <- read_csv("../data/StormEvents_details-ftp_v1.0_d2017_c20181017.cs
 storms_2018 <- read_csv("../data/StormEvents_details-ftp_v1.0_d2018_c20181017.csv")
 
 head(storms_2016)
+```
+
+```{r noaakey}
+
+options("noaakey" = Sys.getenv("noaakey"))
+
 ```
 
