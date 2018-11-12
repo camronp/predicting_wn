@@ -9,10 +9,13 @@ output: html_document
 knitr::opts_chunk$set(echo = TRUE)
 ```
 
+
 ```{r}
 library(readr)
-library(dplyr)
 
-wnv_data <- read_csv("../data/Chicago_WNV_Mosquito_Test_Results.csv")
+mosquito_data <- read_csv("../data/Chicago_WNV_Mosquito_Test_Results.csv")
+
+head(mosquito_data)
 
 ```
+
