@@ -9,14 +9,12 @@ output: html_document
 knitr::opts_chunk$set(echo = TRUE)
 ```
 
-<<<<<<< HEAD
 
-```{r data}
-=======
-Read in mosquito data
+
 ```{r}
->>>>>>> 7c985876cbfdbc1f7743b3e9cc809cadebf40398
+
 library(readr)
+
 ```
 
 ```{r}
