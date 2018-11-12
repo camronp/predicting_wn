@@ -9,7 +9,7 @@ output: html_document
 knitr::opts_chunk$set(echo = TRUE)
 ```
 
-
+Read in mosquito data
 ```{r}
 library(readr)
 
@@ -17,5 +17,16 @@ mosquito_data <- read_csv("../data/Chicago_WNV_Mosquito_Test_Results.csv")
 
 head(mosquito_data)
 
+```
+
+Read in storm data
+```{r}
+storms_2016 <- read_csv("../data/StormEvents_details-ftp_v1.0_d2016_c20180718.csv")
+
+storms_2017 <- read_csv("../data/StormEvents_details-ftp_v1.0_d2017_c20181017.csv")
+
+storms_2018 <- read_csv("../data/StormEvents_details-ftp_v1.0_d2018_c20181017.csv")
+
+head(storms_2016)
 ```
 
