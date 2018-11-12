@@ -9,14 +9,31 @@ output: html_document
 knitr::opts_chunk$set(echo = TRUE)
 ```
 
+<<<<<<< HEAD
 
 ```{r data}
+=======
+Read in mosquito data
+```{r}
+>>>>>>> 7c985876cbfdbc1f7743b3e9cc809cadebf40398
 library(readr)
+```
 
-mosquito_data <- read_csv("../data/Chicago_WNV_Mosquito_Test_Results.csv")
+```{r}
+mosquito_data <- read_csv("https://data.cityofchicago.org/api/views/jqe8-8r6s/rows.csv?accessType=DOWNLOAD")
 
 head(mosquito_data)
+```
 
+Read in storm data
+```{r}
+storms_2016 <- read_csv("../data/StormEvents_details-ftp_v1.0_d2016_c20180718.csv")
+
+storms_2017 <- read_csv("../data/StormEvents_details-ftp_v1.0_d2017_c20181017.csv")
+
+storms_2018 <- read_csv("../data/StormEvents_details-ftp_v1.0_d2018_c20181017.csv")
+
+head(storms_2016)
 ```
 
 ```{r noaakey}
