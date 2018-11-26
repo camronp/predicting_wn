@@ -16,6 +16,7 @@ knitr::opts_chunk$set(echo = TRUE)
 library(readr)
 library(dplyr)
 library(lubridate)
+library(tidyr)
 
 ```
 
@@ -39,6 +40,28 @@ storms_2017 <- read_csv("../data/StormEvents_details-ftp_v1.0_d2017_c20181017.cs
 storms_2018 <- read_csv("../data/StormEvents_details-ftp_v1.0_d2018_c20181017.csv")
 
 head(storms_2016)
+```
+
+```{r, st. charles soil data}
+soil_2017 <- read.delim("https://www.isws.illinois.edu/warm/data/cdfs/stcday.txt") %>% 
+  filter(year %in% c(2016, 2017)) %>%
+  select(year, month, day,
+         avg_soiltemp_4in_sod, avg_soiltemp_8in_sod,
+         avg_soiltemp_4in_bare, avg_soiltemp_2in_bare) %>% 
+  unite(date, month, day, year, sep = "-") %>% 
+  mutate(date = mdy(date)) %>% 
+  rename('TEST DATE' = date)
+
+soil_2018 <- read.delim("https://www.isws.illinois.edu/warm/data/cdfs/current/stcday18.txt") %>% 
+  select(year, month, day,
+         avg_soiltemp_4in_sod, avg_soiltemp_8in_sod,
+         avg_soiltemp_4in_bare, avg_soiltemp_2in_bare) %>% 
+  unite(date, month, day, year, sep = "-") %>% 
+  mutate(date = mdy(date)) %>% 
+  rename('TEST DATE' = date)
+
+soil_temps <- soil_2017 %>% 
+  
 ```
 
 ```{r noaakey}
