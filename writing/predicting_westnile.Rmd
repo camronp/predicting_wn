@@ -17,7 +17,7 @@ library(readr)
 library(dplyr)
 library(lubridate)
 library(rnoaa)
-
+library(corrplot)
 
 ```
 
@@ -95,5 +95,13 @@ weather_data <- read_csv("../data/weather_data.csv") %>%
          precip = "PRCP")
 
 ```
+
+Correlation matrix using correlogram (in works until joined dataset available)
+
+```{r}
+x <- corr()
+corrplot(x, method = "number")
+```
+
 
 
