@@ -19,7 +19,7 @@ library(lubridate)
 
 library(tidyr)
 library(rnoaa)
-
+library(corrplot)
 
 ```
 
@@ -127,5 +127,13 @@ weather_data <- read_csv("../data/weather_data.csv") %>%
   mutate(year = year(date))
 
 ```
+
+Correlation matrix using correlogram (in works until joined dataset available)
+
+```{r}
+x <- corr()
+corrplot(x, method = "number")
+```
+
 
 
