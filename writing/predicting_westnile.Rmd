@@ -91,21 +91,23 @@ leaflet() %>%
 soil_2017 <- read.delim("https://www.isws.illinois.edu/warm/data/cdfs/stcday.txt") %>% 
   filter(year %in% c(2016, 2017)) %>%
   select(year, month, day,
-         avg_soiltemp_4in_sod, avg_soiltemp_8in_sod,
-         avg_soiltemp_4in_bare, avg_soiltemp_2in_bare) %>% 
+         avg_soiltemp_4in_sod, avg_soiltemp_2in_bare) %>% 
   unite(date, month, day, year, sep = "-") %>% 
   mutate(date = mdy(date)) %>% 
   rename('TEST DATE' = date)
 
-soil_2018 <- read.delim("https://www.isws.illinois.edu/warm/data/cdfs/current/stcday18.txt") %>% 
+soil_2018 <- 
+  read.delim("https://www.isws.illinois.edu/warm/data/cdfs/current/stcday18.txt") %>% 
   select(year, month, day,
-         avg_soiltemp_4in_sod, avg_soiltemp_8in_sod,
-         avg_soiltemp_4in_bare, avg_soiltemp_2in_bare) %>% 
+         avg_soiltemp_4in_sod, avg_soiltemp_2in_bare) %>% 
   unite(date, month, day, year, sep = "-") %>% 
   mutate(date = mdy(date)) %>% 
-  rename('TEST DATE' = date)
+  rename('TEST DATE' = date) %>% 
+  slice(-1)
 
-soil_temps <- soil_2017 %>% 
+all_soil_temps <-
+  rbind(soil_2017, soil_2018)
+  
   
 ```
 
