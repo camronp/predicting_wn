@@ -17,6 +17,9 @@ library(dplyr)
 library(lubridate)
 library(leaflet)
 library(viridisLite)
+library(tidyr)
+library(rnoaa)
+library(corrplot)
 
 ```
 
@@ -76,6 +79,56 @@ leaflet() %>%
   
 ```
 
+
+
+```{r, st. charles soil data}
+soil_2017 <- read.delim("https://www.isws.illinois.edu/warm/data/cdfs/stcday.txt") %>% 
+  filter(year %in% c(2016, 2017)) %>%
+  select(year, month, day,
+         avg_soiltemp_4in_sod, avg_soiltemp_2in_bare) %>% 
+  unite(date, month, day, year, sep = "-") %>% 
+  mutate(date = mdy(date)) %>% 
+  rename('TEST DATE' = date)
+
+soil_2018 <- 
+  read.delim("https://www.isws.illinois.edu/warm/data/cdfs/current/stcday18.txt") %>% 
+  select(year, month, day,
+         avg_soiltemp_4in_sod, avg_soiltemp_2in_bare) %>% 
+  unite(date, month, day, year, sep = "-") %>% 
+  mutate(date = mdy(date)) %>% 
+  rename('TEST DATE' = date) %>% 
+  slice(-1)
+
+all_soil_temps <-
+  rbind(soil_2017, soil_2018)
+  
+  
+```
+
+
+```{r noaakey}
+
+```{r weather}
+
+
+weather_data <- read_csv("../data/weather_data.csv") %>% 
+  rename(station = "STATION",
+         name = "NAME",
+         date = "DATE",
+         wind_speed = "AWND",
+         precip = "PRCP") %>% 
+  mutate(week = week(date)) %>% 
+  mutate(year = year(date))
+
+```
+
+
+Correlation matrix using correlogram (in works until joined dataset available)
+
+```{r}
+x <- corr()
+corrplot(x, method = "number")
+```
 
 
 
