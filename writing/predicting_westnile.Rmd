@@ -16,7 +16,10 @@ knitr::opts_chunk$set(echo = TRUE)
 library(readr)
 library(dplyr)
 library(lubridate)
+
 library(tidyr)
+library(rnoaa)
+
 
 ```
 
@@ -25,22 +28,64 @@ mosquito_data <- read_csv("https://data.cityofchicago.org/api/views/jqe8-8r6s/ro
 
 mosquito_data <- mosquito_data %>%
   filter(`SEASON YEAR` %in% c(2016, 2017, 2018)) %>%
-  mutate(`TEST DATE` = mdy_hms(`TEST DATE`))
+  mutate(`TEST DATE` = mdy_hms(`TEST DATE`)) %>% 
+  rename("year" = `SEASON YEAR`, "test_id" = `TEST ID`, 
+         "test_date" = `TEST DATE`, "number_mosq" = `NUMBER OF MOSQUITOES`)
 
 head(mosquito_data)
+
+positive_mosquito <- mosquito_data %>%
+  filter(RESULT == "positive")
 
 ```
 
 Read in storm data
 ```{r}
-storms_2016 <- read_csv("../data/StormEvents_details-ftp_v1.0_d2016_c20180718.csv")
+storms_2016 <- read_csv("../data/StormEvents_details-ftp_v1.0_d2016_c20180718.csv") 
 
 storms_2017 <- read_csv("../data/StormEvents_details-ftp_v1.0_d2017_c20181017.csv")
 
 storms_2018 <- read_csv("../data/StormEvents_details-ftp_v1.0_d2018_c20181017.csv")
 
-head(storms_2016)
+clean_storm_2016 <- storms_2016 %>%
+  filter(STATE == "ILLINOIS" & CZ_NAME == "COOK") %>%
+  select(BEGIN_DATE_TIME, EVENT_TYPE, BEGIN_LAT, BEGIN_LON, END_LAT, END_LON)%>%
+  mutate(BEGIN_DATE_TIME = dmy_hms(BEGIN_DATE_TIME))
+
+clean_storm_2017 <- storms_2017 %>%
+  filter(STATE == "ILLINOIS" & CZ_NAME == "COOK") %>%
+  select(BEGIN_DATE_TIME, EVENT_TYPE, BEGIN_LAT, BEGIN_LON, END_LAT, END_LON)%>%
+  mutate(BEGIN_DATE_TIME = dmy_hms(BEGIN_DATE_TIME))
+
+clean_storm_2018 <- storms_2018 %>%
+  filter(STATE == "ILLINOIS" & CZ_NAME == "COOK") %>%
+  select(BEGIN_DATE_TIME, EVENT_TYPE, BEGIN_LAT, BEGIN_LON, END_LAT, END_LON) %>%
+  mutate(BEGIN_DATE_TIME = dmy_hms(BEGIN_DATE_TIME))
+
+clean_storm_2016
 ```
+
+Add layer of positive cases so can see 
+```{r}
+library(leaflet)
+library(viridisLite)
+library(tigris)
+
+pal <- colorFactor(viridis(2), mosquito_data$RESULT)
+
+leaflet() %>%
+  addTiles() %>%
+  addCircleMarkers(data = mosquito_data, radius = 2, lng = ~LONGITUDE, lat = ~LATITUDE, color = pal(mosquito_data$RESULT), opacity = 0.9, group = "mosquito") %>%
+  addLegend(pal = pal, values = mosquito_data$RESULT, opacity = 0.9) %>%
+  addLayersControl(baseGroups = c("base map"),
+                   overlayGroups = c("mosquito"))
+
+
+
+
+  
+```
+
 
 ```{r, st. charles soil data}
 soil_2017 <- read.delim("https://www.isws.illinois.edu/warm/data/cdfs/stcday.txt") %>% 
@@ -64,9 +109,25 @@ soil_temps <- soil_2017 %>%
   
 ```
 
+
 ```{r noaakey}
 
 options("noaakey" = Sys.getenv("noaakey"))
+
+```
+
+```{r noaa_data}
+
+station_data <- ghcnd_stations()
+
+lat_lon_df <- data.frame(id = "chicago",
+                         latitude = c(-87.8, -87.5),
+                         longitude = c(41.6, 42))
+
+nearby_stations <- meteo_nearby_stations(lat_lon_df = lat_lon_df,
+                                         station_data = station_data, radius = 10)
+
+noaa_chicago <- ghcnd(stationid = "chicago")
 
 ```
 
