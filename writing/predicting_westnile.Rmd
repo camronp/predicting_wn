@@ -12,29 +12,32 @@ knitr::opts_chunk$set(echo = TRUE)
 
 
 ```{r}
-
 library(readr)
 library(dplyr)
 library(lubridate)
-
+library(leaflet)
+library(viridisLite)
 
 ```
 
 ```{r}
-mosquito_data <- read_csv("https://data.cityofchicago.org/api/views/jqe8-8r6s/rows.csv?accessType=DOWNLOAD") 
+mosquito_data_original <- read_csv("https://data.cityofchicago.org/api/views/jqe8-8r6s/rows.csv?accessType=DOWNLOAD") 
 
-mosquito_data <- mosquito_data %>%
+mosquito_data <- mosquito_data_original %>%
   filter(`SEASON YEAR` %in% c(2016, 2017, 2018)) %>%
-  mutate(`TEST DATE` = mdy_hms(`TEST DATE`))
+  mutate(`TEST DATE` = mdy_hms(`TEST DATE`)) %>%
+  rename_all(.funs = str_to_lower) %>%
+  rename(year = `season year`)
 
 head(mosquito_data)
 
 positive_mosquito <- mosquito_data %>%
-  filter(RESULT == "positive")
+  filter(result == "positive")
+
 
 ```
 
-Read in storm data
+Read in and clean storm data
 ```{r}
 storms_2016 <- read_csv("../data/StormEvents_details-ftp_v1.0_d2016_c20180718.csv") 
 
@@ -42,49 +45,37 @@ storms_2017 <- read_csv("../data/StormEvents_details-ftp_v1.0_d2017_c20181017.cs
 
 storms_2018 <- read_csv("../data/StormEvents_details-ftp_v1.0_d2018_c20181017.csv")
 
-clean_storm_2016 <- storms_2016 %>%
-  filter(STATE == "ILLINOIS" & CZ_NAME == "COOK") %>%
-  select(BEGIN_DATE_TIME, EVENT_TYPE, BEGIN_LAT, BEGIN_LON, END_LAT, END_LON)%>%
-  mutate(BEGIN_DATE_TIME = dmy_hms(BEGIN_DATE_TIME))
+all_storm <- rbind(storms_2016, storms_2017, storms_2018) %>%
+  rename_all(.funs = str_to_lower) %>%
+  filter(state == "ILLINOIS" & cz_name == "COOK") %>%
+  select(begin_date_time, event_type, begin_lat, begin_lon, end_lat, end_lon)%>%
+  mutate(begin_date_time = dmy_hms(begin_date_time)) %>%
+  mutate(week = week(begin_date_time), 
+         year = year(begin_date_time))
 
-clean_storm_2017 <- storms_2017 %>%
-  filter(STATE == "ILLINOIS" & CZ_NAME == "COOK") %>%
-  select(BEGIN_DATE_TIME, EVENT_TYPE, BEGIN_LAT, BEGIN_LON, END_LAT, END_LON)%>%
-  mutate(BEGIN_DATE_TIME = dmy_hms(BEGIN_DATE_TIME))
-
-clean_storm_2018 <- storms_2018 %>%
-  filter(STATE == "ILLINOIS" & CZ_NAME == "COOK") %>%
-  select(BEGIN_DATE_TIME, EVENT_TYPE, BEGIN_LAT, BEGIN_LON, END_LAT, END_LON) %>%
-  mutate(BEGIN_DATE_TIME = dmy_hms(BEGIN_DATE_TIME))
-
-clean_storm_2016
-```
-
-Add layer of positive cases so can see 
-```{r}
-library(leaflet)
-library(viridisLite)
-library(tigris)
-
-pal <- colorFactor(viridis(2), mosquito_data$RESULT)
-
-leaflet() %>%
-  addTiles() %>%
-  addCircleMarkers(data = mosquito_data, radius = 2, lng = ~LONGITUDE, lat = ~LATITUDE, color = pal(mosquito_data$RESULT), opacity = 0.9, group = "mosquito") %>%
-  addLegend(pal = pal, values = mosquito_data$RESULT, opacity = 0.9) %>%
-  addLayersControl(baseGroups = c("base map"),
-                   overlayGroups = c("mosquito"))
-
-
-
+head(all_storm)
 
   
 ```
 
+Add interactive feature with number of positive or negative mosquitos found
+```{r}
 
-```{r noaakey}
+pal <- colorFactor(viridis(2), mosquito_data$RESULT)
 
-options("noaakey" = Sys.getenv("noaakey"))
+popup_info <- paste0("<b>Time<b>", mosquito_data$`TEST DATE`,
+                     "<b>Case<b>", mosquito_data$RESULT)
 
+leaflet() %>%
+  addTiles() %>%
+  addCircleMarkers(data = mosquito_data, radius = 2, lng = ~LONGITUDE, lat = ~LATITUDE, color = pal(mosquito_data$RESULT), opacity = 0.9, group = "mosquito", popup = popup_info) %>% 
+  addCircleMarkers(data = mosquito_data, radius = 2, lng = ~LONGITUDE, lat = ~LATITUDE, color = pal(positive_mosquito$RESULT), opacity = 0.9, group = "positive mosquito") %>%
+  addLegend(pal = pal, values = mosquito_data$RESULT, opacity = 0.9) %>%
+  addLayersControl(baseGroups = c("base map"),
+                   overlayGroups = c("mosquito", "positive mosquito"))
+  
 ```
+
+
+
 
