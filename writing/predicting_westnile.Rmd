@@ -92,7 +92,9 @@ weather_data <- read_csv("../data/weather_data.csv") %>%
          name = "NAME",
          date = "DATE",
          wind_speed = "AWND",
-         precip = "PRCP")
+         precip = "PRCP") %>% 
+  mutate(week = week(date)) %>% 
+  mutate(year = year(date))
 
 ```
 
