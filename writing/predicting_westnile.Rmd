@@ -94,7 +94,9 @@ weather_data <- read_csv("../data/weather_data.csv") %>%
          wind_speed = "AWND",
          precip = "PRCP") %>% 
   mutate(week = week(date)) %>% 
-  mutate(year = year(date))
+  mutate(year = year(date)) %>%
+  filter(month(date) > 4 & month(date) < 11)
+
 
 ```
 
