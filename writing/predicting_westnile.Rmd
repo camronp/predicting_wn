@@ -88,7 +88,9 @@ soil_2017 <- read.delim("https://www.isws.illinois.edu/warm/data/cdfs/stcday.txt
          avg_soiltemp_4in_sod, avg_soiltemp_2in_bare) %>% 
   unite(date, month, day, year, sep = "-") %>% 
   mutate(date = mdy(date)) %>% 
-  rename('TEST DATE' = date)
+  mutate(week = week(date)) %>% 
+  mutate(year = year(date)) %>%
+  filter(month(date) > 4 & month(date) < 11)
 
 soil_2018 <- 
   read.delim("https://www.isws.illinois.edu/warm/data/cdfs/current/stcday18.txt") %>% 
@@ -96,11 +98,14 @@ soil_2018 <-
          avg_soiltemp_4in_sod, avg_soiltemp_2in_bare) %>% 
   unite(date, month, day, year, sep = "-") %>% 
   mutate(date = mdy(date)) %>% 
-  rename('TEST DATE' = date) %>% 
-  slice(-1)
+  slice(-1) %>% 
+  mutate(week = week(date)) %>% 
+  mutate(year = year(date)) %>%
+  filter(month(date) > 4 & month(date) < 11)
 
 all_soil_temps <-
-  rbind(soil_2017, soil_2018)
+  rbind(soil_2017, soil_2018) 
+
   
   
 ```
