@@ -114,22 +114,18 @@ all_soil_temps <-
 
 ```{r noaakey}
 
-options("noaakey" = Sys.getenv("noaakey"))
+```{r weather}
+
+
+weather_data <- read_csv("../data/weather_data.csv") %>% 
+  rename(station = "STATION",
+         name = "NAME",
+         date = "DATE",
+         wind_speed = "AWND",
+         precip = "PRCP") %>% 
+  mutate(week = week(date)) %>% 
+  mutate(year = year(date))
 
 ```
 
-```{r noaa_data}
-
-station_data <- ghcnd_stations()
-
-lat_lon_df <- data.frame(id = "chicago",
-                         latitude = c(-87.8, -87.5),
-                         longitude = c(41.6, 42))
-
-nearby_stations <- meteo_nearby_stations(lat_lon_df = lat_lon_df,
-                                         station_data = station_data, radius = 10)
-
-noaa_chicago <- ghcnd(stationid = "chicago")
-
-```
 
