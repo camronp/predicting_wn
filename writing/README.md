@@ -9,3 +9,7 @@ https://factfinder.census.gov/bkmk/table/1.0/en/DEC/10_SF1/GCTPH1.US05PR
 Storm events:
 https://www1.ncdc.noaa.gov/pub/data/swdi/stormevents/csvfiles/
 
+Documentation for weather data:
+https://www1.ncdc.noaa.gov/pub/data/cdo/documentation/GHCND_documentation.pdf
+
+
