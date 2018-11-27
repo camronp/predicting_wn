@@ -106,7 +106,6 @@ all_soil_temps <-
 ```
 
 
-```{r noaakey}
 
 ```{r weather}
 
