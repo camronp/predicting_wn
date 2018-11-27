@@ -15,6 +15,7 @@ knitr::opts_chunk$set(echo = TRUE)
 library(readr)
 library(dplyr)
 library(lubridate)
+library(stringr)
 library(leaflet)
 library(viridisLite)
 library(tidyr)
@@ -41,7 +42,7 @@ positive_mosquito <- mosquito_data %>%
 ```
 
 Read in and clean storm data
-```{r}
+```{r storm data}
 storms_2016 <- read_csv("../data/StormEvents_details-ftp_v1.0_d2016_c20180718.csv") 
 
 storms_2017 <- read_csv("../data/StormEvents_details-ftp_v1.0_d2017_c20181017.csv")
@@ -51,12 +52,20 @@ storms_2018 <- read_csv("../data/StormEvents_details-ftp_v1.0_d2018_c20181017.cs
 all_storm <- rbind(storms_2016, storms_2017, storms_2018) %>%
   rename_all(.funs = str_to_lower) %>%
   filter(state == "ILLINOIS" & cz_name == "COOK") %>%
-  select(begin_date_time, event_type, begin_lat, begin_lon, end_lat, end_lon)%>%
-  mutate(begin_date_time = dmy_hms(begin_date_time)) %>%
-  mutate(week = week(begin_date_time), 
-         year = year(begin_date_time))
+  mutate(date = begin_date_time) %>%
+  select(date, event_type, begin_lat, begin_lon, end_lat, end_lon) %>%
+  mutate(date = dmy_hms(date)) %>%
+  mutate(week = week(date), 
+         year = year(date)) %>%
+  filter(month(date) > 4 & month(date) < 11)
 
 head(all_storm)
+
+
+#try to remove double events - does not work - also tried unique()
+all_storm %>%
+  group_by(year, week, event_type) %>%
+  distinct()
 
   
 ```
@@ -64,16 +73,18 @@ head(all_storm)
 Add interactive feature with number of positive or negative mosquitos found
 ```{r}
 
-pal <- colorFactor(viridis(2), mosquito_data$RESULT)
+pal <- colorFactor(viridis(2), mosquito_data$result)
 
-popup_info <- paste0("<b>Time<b>", mosquito_data$`TEST DATE`,
-                     "<b>Case<b>", mosquito_data$RESULT)
+popup_info <- paste0("<b>Time<b>", mosquito_data$`test date`,
+                     "<b>Case<b>", mosquito_data$result)
 
 leaflet() %>%
   addTiles() %>%
-  addCircleMarkers(data = mosquito_data, radius = 2, lng = ~LONGITUDE, lat = ~LATITUDE, color = pal(mosquito_data$RESULT), opacity = 0.9, group = "mosquito", popup = popup_info) %>% 
-  addCircleMarkers(data = mosquito_data, radius = 2, lng = ~LONGITUDE, lat = ~LATITUDE, color = pal(positive_mosquito$RESULT), opacity = 0.9, group = "positive mosquito") %>%
-  addLegend(pal = pal, values = mosquito_data$RESULT, opacity = 0.9) %>%
+  addCircleMarkers(data = mosquito_data, radius = 2, lng = ~longitude, lat = ~latitude, 
+                   color = pal(mosquito_data$result), opacity = 0.9, group = "mosquito", popup = popup_info) %>% 
+  addCircleMarkers(data = mosquito_data, radius = 2, lng = ~longitude, lat = ~latitude, 
+                   color = pal(positive_mosquito$result), opacity = 0.9, group = "positive mosquito") %>%
+  addLegend(pal = pal, values = mosquito_data$result, opacity = 0.9) %>%
   addLayersControl(baseGroups = c("base map"),
                    overlayGroups = c("mosquito", "positive mosquito"))
   
@@ -90,7 +101,8 @@ soil_2017 <- read.delim("https://www.isws.illinois.edu/warm/data/cdfs/stcday.txt
   mutate(date = mdy(date)) %>% 
   mutate(week = week(date)) %>% 
   mutate(year = year(date)) %>%
-  filter(month(date) > 4 & month(date) < 11)
+  filter(month(date) > 4 & month(date) < 11) %>%
+  na.omit()
 
 soil_2018 <- 
   read.delim("https://www.isws.illinois.edu/warm/data/cdfs/current/stcday18.txt") %>% 
@@ -101,11 +113,24 @@ soil_2018 <-
   slice(-1) %>% 
   mutate(week = week(date)) %>% 
   mutate(year = year(date)) %>%
-  filter(month(date) > 4 & month(date) < 11)
+  filter(month(date) > 4 & month(date) < 11) %>%
+  na.omit()
 
 all_soil_temps <-
   rbind(soil_2017, soil_2018) 
 
+head(all_soil_temps)
+
+all_soil_temps %>%
+  na.omit() %>%
+  group_by(year, week) 
+  #mutate(avg_sod = mean(avg_soiltemp_4in_sod))
+  #summarise_at(vars(avg_soiltemp_4in_sod), mean)
+  
+#Even this will not work to calculate the average- I tried to remove any NAs but it still does not work
+mean(all_soil_temps$avg_soiltemp_4in_sod)
+  
+  
   
   
 ```
@@ -125,7 +150,20 @@ weather_data <- read_csv("../data/weather_data.csv") %>%
   mutate(year = year(date)) %>%
   filter(month(date) > 4 & month(date) < 11)
 
+#worked for some of the precipitation weeks
+weather_data %>%
+  group_by(year, week) %>%
+  mutate(avg_precip = mean(precip))
 
+
+```
+
+Attempt to join all of the data points
+
+```{r}
+
+
+all_data <- full_join(mosquito_data, all_storm, all_soil_temps, weather_data)
 ```
 
 
