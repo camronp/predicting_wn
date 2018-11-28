@@ -122,15 +122,15 @@ all_soil_temps <-
 
 head(all_soil_temps)
 
+all_soil_temps$avg_soiltemp_4in_sod <- as.numeric(all_soil_temps$avg_soiltemp_4in_sod)
+
 all_soil_temps %>%
   na.omit() %>%
   group_by(year, week) 
   #mutate(avg_sod = mean(avg_soiltemp_4in_sod))
-  #summarise_at(vars(avg_soiltemp_4in_sod), mean)
+  summarise_at(vars(avg_soiltemp_4in_sod), mean)
   
-#Even this will not work to calculate the average- I tried to remove any NAs but it still does not work
-mean(all_soil_temps$avg_soiltemp_4in_sod)
-  
+#had to change class to numeric :)  
   
   
   
@@ -171,7 +171,7 @@ all_data <- full_join(mosquito_data, all_storm, all_soil_temps, weather_data)
 Correlation matrix using correlogram (in works until joined dataset available)
 
 ```{r}
-x <- corr()
+correlation <- cor()
 corrplot(x, method = "number")
 ```
 
