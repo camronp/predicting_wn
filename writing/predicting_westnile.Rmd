@@ -31,7 +31,8 @@ mosquito_data <- mosquito_data_original %>%
   filter(`SEASON YEAR` %in% c(2016, 2017, 2018)) %>%
   mutate(`TEST DATE` = mdy_hms(`TEST DATE`)) %>%
   rename_all(.funs = str_to_lower) %>%
-  rename(year = `season year`)
+  rename(year = `season year`, test_id = `test id`, test_date = `test date`,
+         number_mosquitos = `number of mosquitoes`)
 
 head(mosquito_data)
 
@@ -75,7 +76,7 @@ Add interactive feature with number of positive or negative mosquitos found
 
 pal <- colorFactor(viridis(2), mosquito_data$result)
 
-popup_info <- paste0("<b>Time<b>", mosquito_data$`test date`,
+popup_info <- paste0("<b>Time<b>", mosquito_data$test_date,
                      "<b>Case<b>", mosquito_data$result)
 
 leaflet() %>%
