@@ -128,7 +128,6 @@ all_soil_temps$avg_soiltemp_4in_sod <- as.numeric(all_soil_temps$avg_soiltemp_4i
 all_soil_temps %>%
   na.omit() %>%
   group_by(year, week) %>% 
-  #mutate(avg_sod = mean(avg_soiltemp_4in_sod))
   summarise_at(vars(avg_soiltemp_4in_sod), mean)
   
 #had to change class to numeric :)  
@@ -152,10 +151,6 @@ weather_data <- read_csv("../data/weather_data.csv") %>%
   mutate(year = year(date)) %>%
   filter(month(date) > 4 & month(date) < 11)
 
-#worked for some of the precipitation weeks
-weather_data %>%
-  group_by(year, week) %>%
-  mutate(avg_precip = mean(precip))
 
 #works for all?
 weather_data %>% 
