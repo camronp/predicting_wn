@@ -6,8 +6,7 @@ output: html_document
 ---
 
 ```{r setup, include=FALSE}
-knitr::opts_chunk$set(echo = TRUE, message = FALSE, warning = FALSE)
-
+knitr::opts_chunk$set(echo = TRUE)
 ```
 
 
@@ -116,9 +115,15 @@ soil_2018 <-
   na.omit()
 
 all_soil_temps <-
-  rbind(soil_2017, soil_2018) 
+  rbind(soil_2017, soil_2018) %>% 
+  mutate(avg_soiltemp_4in_sod = as.numeric(as.character(avg_soiltemp_4in_sod))) %>%
+  mutate(avg_soiltemp_2in_bare = as.numeric(as.character(avg_soiltemp_2in_bare))) %>%
+  group_by(year, week) %>% 
+  summarise(avg_soil_t_4 = mean(avg_soiltemp_4in_sod, na.rm = TRUE),
+            avg_soil_t_2 = mean(avg_soiltemp_2in_bare, na.rm = TRUE))
 
 head(all_soil_temps)
+<<<<<<< HEAD
 
 all_soil_temps$avg_soiltemp_4in_sod <- as.numeric(all_soil_temps$avg_soiltemp_4in_sod)
 
@@ -131,6 +136,9 @@ all_soil_temps %>%
 #had to change class to numeric :)  
   
   
+=======
+tail(all_soil_temps)
+>>>>>>> 52a020758bd1a7058dc4123dacc199bee8f4425c
 ```
 
 
@@ -176,8 +184,8 @@ all_data <- full_join(all_data, weather_data, by = NULL)
 Correlation matrix using correlogram (in works until joined dataset available)
 
 ```{r}
-correlation <- cor()
-corrplot(x, method = "number")
+#correlation <- cor()
+#corrplot(x, method = "number")
 ```
 
 
