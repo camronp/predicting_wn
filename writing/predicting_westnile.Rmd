@@ -171,6 +171,12 @@ Attempt to join all of the data points
 
 all_data <- full_join(mosquito_data, all_storm, all_soil_temps, weather_data)
 
+#all_data <- full_join(mosquito_data, all_storm, all_soil_temps, weather_data)
+
+all_data <- full_join(mosquito_data, all_storm, by = NULL)
+all_data <- full_join(all_data, all_soil_temps, by = NULL)
+all_data <- full_join(all_data, weather_data, by = NULL)
+
 ```
 
 
