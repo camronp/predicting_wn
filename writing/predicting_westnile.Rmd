@@ -63,11 +63,8 @@ all_storm <- rbind(storms_2016, storms_2017, storms_2018) %>%
 head(all_storm)
 
 
-#try to remove double events - does not work - also tried unique()
-all_storm %>%
-  group_by(year, week, event_type) %>%
-  distinct()
-
+#Remove double events 
+storm_events <- unique(all_storm[c("year", "week", "event_type")])
   
 ```
 
@@ -126,7 +123,10 @@ all_soil_temps <-
             avg_soil_t_2 = mean(avg_soiltemp_2in_bare, na.rm = TRUE))
 
 head(all_soil_temps)
+
+
 tail(all_soil_temps)
+
 ```
 
 
@@ -144,20 +144,24 @@ weather_data <- read_csv("../data/weather_data.csv") %>%
   mutate(year = year(date)) %>%
   filter(month(date) > 4 & month(date) < 11)
 
-weather_summary <- weather_data %>% 
+colnames(weather_data)
+
+#works for all?
+weather_data %>% 
   group_by(year, week) %>% 
+
   summarise(precip_mean = mean(precip, na.rm = TRUE)) %>% 
   ungroup()
 ```
-Attempt to join all of the data points
+
 
 ```{r}
 
+
 df1 <- full_join(mosquito_data, all_storm, all_soil_temps, weather_data)
 
-all_data <- full_join(mosquito_data, all_storm, by = NULL)
-all_data <- full_join(all_data, all_soil_temps, by = NULL)
-all_data <- full_join(all_data, weather_data, by = NULL)
+
+head(all_data)
 
 ```
 
