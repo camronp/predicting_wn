@@ -151,14 +151,12 @@ weather_data <- read_csv("../data/weather_data.csv") %>%
   mutate(year = year(date)) %>%
   filter(month(date) > 4 & month(date) < 11)
 
-
-#works for all?
-weather_data %>% 
+weather_summary <- weather_data %>% 
   group_by(year, week) %>% 
-  summarise_at(vars(precip), mean)
+  summarise(precip_mean = mean(precip, na.rm = TRUE)) %>% 
+  ungroup()
 
-
-```
+ ```
 
 Attempt to join all of the data points
 
