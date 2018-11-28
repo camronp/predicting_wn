@@ -127,7 +127,7 @@ all_soil_temps$avg_soiltemp_4in_sod <- as.numeric(all_soil_temps$avg_soiltemp_4i
 
 all_soil_temps %>%
   na.omit() %>%
-  group_by(year, week) 
+  group_by(year, week) %>% 
   #mutate(avg_sod = mean(avg_soiltemp_4in_sod))
   summarise_at(vars(avg_soiltemp_4in_sod), mean)
   
@@ -169,8 +169,8 @@ Attempt to join all of the data points
 
 ```{r}
 
-
 all_data <- full_join(mosquito_data, all_storm, all_soil_temps, weather_data)
+
 ```
 
 
