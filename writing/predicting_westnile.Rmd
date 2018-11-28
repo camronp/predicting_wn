@@ -123,22 +123,10 @@ all_soil_temps <-
             avg_soil_t_2 = mean(avg_soiltemp_2in_bare, na.rm = TRUE))
 
 head(all_soil_temps)
-<<<<<<< HEAD
 
-all_soil_temps$avg_soiltemp_4in_sod <- as.numeric(all_soil_temps$avg_soiltemp_4in_sod)
 
-all_soil_temps %>%
-  na.omit() %>%
-  group_by(year, week) %>% 
-  summarise_at(vars(avg_soiltemp_4in_sod), mean) 
-               
-  
-#had to change class to numeric :)  
-  
-  
-=======
 tail(all_soil_temps)
->>>>>>> 52a020758bd1a7058dc4123dacc199bee8f4425c
+
 ```
 
 
@@ -156,31 +144,25 @@ weather_data <- read_csv("../data/weather_data.csv") %>%
   mutate(year = year(date)) %>%
   filter(month(date) > 4 & month(date) < 11)
 
-<<<<<<< HEAD
 colnames(weather_data)
 
 #works for all?
 weather_data %>% 
-=======
-weather_summary <- weather_data %>% 
->>>>>>> ee3123de9bb4c93a984db33e1278447af15f8024
   group_by(year, week) %>% 
-  summarise(precip_mean = mean(precip, na.rm = TRUE)) %>% 
-  ungroup()
+  summarise_at(vars(precip), mean)
 
- ```
+
+```
 
 Attempt to join all of the data points
 
 ```{r}
 
-all_data <- full_join(mosquito_data, all_storm, all_soil_temps, weather_data)
-
-#all_data <- full_join(mosquito_data, all_storm, all_soil_temps, weather_data)
-
 all_data <- full_join(mosquito_data, storm_events, by = NULL)
 all_data <- full_join(all_data, all_soil_temps, by = NULL)
 all_data <- full_join(all_data, weather_data, by = NULL)
+
+head(all_data)
 
 ```
 
