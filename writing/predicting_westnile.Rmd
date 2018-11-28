@@ -64,11 +64,8 @@ all_storm <- rbind(storms_2016, storms_2017, storms_2018) %>%
 head(all_storm)
 
 
-#try to remove double events - does not work - also tried unique()
-all_storm %>%
-  group_by(year, week, event_type) %>%
-  distinct()
-
+#Remove double events 
+storm_events <- unique(all_storm[c("year", "week", "event_type")])
   
 ```
 
@@ -128,10 +125,10 @@ all_soil_temps$avg_soiltemp_4in_sod <- as.numeric(all_soil_temps$avg_soiltemp_4i
 all_soil_temps %>%
   na.omit() %>%
   group_by(year, week) %>% 
-  summarise_at(vars(avg_soiltemp_4in_sod), mean)
+  summarise_at(vars(avg_soiltemp_4in_sod), mean) 
+               
   
 #had to change class to numeric :)  
-  
   
   
 ```
@@ -151,6 +148,7 @@ weather_data <- read_csv("../data/weather_data.csv") %>%
   mutate(year = year(date)) %>%
   filter(month(date) > 4 & month(date) < 11)
 
+colnames(weather_data)
 
 #works for all?
 weather_data %>% 
@@ -168,7 +166,7 @@ all_data <- full_join(mosquito_data, all_storm, all_soil_temps, weather_data)
 
 #all_data <- full_join(mosquito_data, all_storm, all_soil_temps, weather_data)
 
-all_data <- full_join(mosquito_data, all_storm, by = NULL)
+all_data <- full_join(mosquito_data, storm_events, by = NULL)
 all_data <- full_join(all_data, all_soil_temps, by = NULL)
 all_data <- full_join(all_data, weather_data, by = NULL)
 
