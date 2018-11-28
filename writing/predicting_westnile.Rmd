@@ -6,8 +6,7 @@ output: html_document
 ---
 
 ```{r setup, include=FALSE}
-knitr::opts_chunk$set(echo = TRUE, message = FALSE, warning = FALSE)
-
+knitr::opts_chunk$set(echo = TRUE)
 ```
 
 
@@ -172,8 +171,8 @@ all_data <- full_join(all_data, weather_data, by = NULL)
 Correlation matrix using correlogram (in works until joined dataset available)
 
 ```{r}
-correlation <- cor()
-corrplot(x, method = "number")
+#correlation <- cor()
+#corrplot(x, method = "number")
 ```
 
 
