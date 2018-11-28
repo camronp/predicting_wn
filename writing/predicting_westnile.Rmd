@@ -156,6 +156,11 @@ weather_data %>%
   group_by(year, week) %>%
   mutate(avg_precip = mean(precip))
 
+#works for all?
+weather_data %>% 
+  group_by(year, week) %>% 
+  summarise_at(vars(precip), mean)
+
 
 ```
 
