@@ -148,16 +148,12 @@ weather_summary <- weather_data %>%
   group_by(year, week) %>% 
   summarise(precip_mean = mean(precip, na.rm = TRUE)) %>% 
   ungroup()
-
- ```
-
+```
 Attempt to join all of the data points
 
 ```{r}
 
-all_data <- full_join(mosquito_data, all_storm, all_soil_temps, weather_data)
-
-#all_data <- full_join(mosquito_data, all_storm, all_soil_temps, weather_data)
+df1 <- full_join(mosquito_data, all_storm, all_soil_temps, weather_data)
 
 all_data <- full_join(mosquito_data, all_storm, by = NULL)
 all_data <- full_join(all_data, all_soil_temps, by = NULL)
