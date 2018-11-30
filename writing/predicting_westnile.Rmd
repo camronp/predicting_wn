@@ -40,6 +40,7 @@ positive_mosquito <- mosquito_data %>%
   filter(result == "positive")
 
 
+
 ```
 
 Read in and clean storm data
@@ -85,6 +86,10 @@ leaflet() %>%
   addLegend(pal = pal, values = mosquito_data$result, opacity = 0.9) %>%
   addLayersControl(baseGroups = c("base map"),
                    overlayGroups = c("mosquito", "positive mosquito"))
+
+#size of circle- total #
+#proportion of positive  mosquitoes viridis color
+# 
   
 ```
 
@@ -147,7 +152,7 @@ weather_data <- read_csv("../data/weather_data.csv") %>%
 colnames(weather_data)
 
 #works for all?
-weather_data %>% 
+weather_data <- weather_data %>% 
   group_by(year, week) %>% 
   summarise(precip_mean = mean(precip, na.rm = TRUE)) %>% 
   ungroup()
@@ -157,7 +162,7 @@ weather_data %>%
 ```{r}
 
 
-df1 <- full_join(mosquito_data, all_storm, all_soil_temps, weather_data)
+#df1 <- full_join(mosquito_data, all_storm, all_soil_temps, weather_data)
 
 all_data <- full_join(mosquito_data, storm_events)
 all_data <- full_join(all_data, all_soil_temps)
@@ -168,6 +173,58 @@ head(all_data)
 
 ```
 
+Plot positive mosquito and precipitation
+
+Compare the preciptation by week and positive mosquitos by week on top of each other to see similarities-- acutally try to add on top of graph
+```{r}
+
+head(positive_mosquito)
+
+all_pos <- full_join(positive_mosquito, all_data) %>%
+  filter(year == 2016)
+          
+head(all_pos)
+
+library(ggplot2)
+
+# 2D hexbin plots
+
+ggplot(all_pos, aes(x = week, y = precip_mean)) +
+  geom_point() +
+  geom_smooth() +
+  labs(x = "Week of 2016", y = "Precipitation in inches??")
+  ggtitle("Precipitation by Week in 2016")
+
+new_mos<- mosquito_data %>%
+  group_by(week, year, result) %>%
+  summarise(no_mos = sum(number_mosquitos))
+
+pos_plus_all <- full_join(new_mos, all_data) %>%
+  filter(year == 2016)
+
+ggplot(pos_plus_all, aes(x = week, y = no_mos, fill = result)) +
+  geom_bar(stat = "identity") +
+  labs(x = "Week of 2016", y = "Number of collected mosquitoes") +
+  ggtitle("Positive West Nile Virus Mosquitoes 2016")
+
+ggplot(pos_plus_all, aes(x = no_mos, y = precip_mean)) +
+  geom_point() +
+  geom_smooth() +
+  labs(x = "number collected mosquitos", y = "average precipitation") +
+  ggtitle("Not looking great on correlation")
+
+
+```
+
+If soil temp and moisture are highly corelated- may not need both
+
+Time as x axis as predictor, bar charts with toal length of bar= number of mosquitos, color = # or mosquitos tested positive
+
+Could do with total # of posquitos or proportion
+
+Geom smooth for weather events or seasonal patterns for time - won't see outlier, just average
+
+regression tree- works better than linear when looking at many things strongly correlated
 
 Correlation matrix using correlogram (in works until joined dataset available)
 
