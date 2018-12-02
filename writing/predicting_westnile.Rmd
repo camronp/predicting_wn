@@ -93,20 +93,36 @@ Add interactive feature with number of positive or negative mosquitos found
 Can use to see the locations where more positive mosquitoes are found
 ```{r}
 
-pal <- colorFactor(viridis(2), final_mos$result)
+# find the total # mosquitoes collected each week
+mosquito_data_tot_leaf <- mosquito_data %>%
+  group_by(latitude, longitude) %>%
+  summarise(total_no_mos = sum(number_mosquitos))
 
-popup_info <- paste0("<b>Time<b>", mosquito_data$test_date,
-                     "<b>Case<b>", mosquito_data$result)
+
+# find the sum of the # of positive mosquitoes collected each week
+positive_mosquito_leaf <- mosquito_data %>%
+  group_by(latitude, longitude) %>%
+  filter(result == "positive") %>%
+  summarise(pos_mos_no = sum(number_mosquitos))
+
+# join the positive mosquitoes and total # of mosquitoes and calculate the proportion of positive mosquitoes collected each week 
+final_mosquito_leaf <- mosquito_data_tot_leaf %>%
+  full_join(positive_mosquito_leaf) %>%
+  mutate_if(is.integer, funs(replace(., is.na(.), 0))) %>%
+  mutate(prop_pos_mos = pos_mos_no / total_no_mos) %>%
+  select(latitude, longitude, pos_mos_no, total_no_mos, prop_pos_mos)
+
+pal <- colorFactor(viridis(10), final_mosquito_leaf$prop_pos_mos)
+
+popup_info <- paste0("<b>Proportion positive mosquitoes<b>", final_mosquito_leaf$prop_pos_mos)
 
 leaflet() %>%
   addTiles() %>%
-  addCircleMarkers(data = mosquito_data, radius = 2, lng = ~longitude, lat = ~latitude, 
-                   color = pal(mosquito_data$result), opacity = 0.9, group = "mosquito", popup = popup_info) %>% 
-  addCircleMarkers(data = mosquito_data, radius = 2, lng = ~longitude, lat = ~latitude, 
-                   color = pal(positive_mosquito$result), opacity = 0.9, group = "positive mosquito") %>%
-  addLegend(pal = pal, values = mosquito_data$result, opacity = 0.9) %>%
-  addLayersControl(baseGroups = c("base map"),
-                   overlayGroups = c("mosquito", "positive mosquito"))
+  addCircleMarkers(data = final_mosquito_leaf, radius = ~final_mosquito_leaf$prop_pos_mos*10,
+                   lng = ~longitude, lat = ~latitude, 
+                   color = pal(final_mosquito_leaf$prop_pos_mos), opacity = 0.9,
+                   group = "mosquito", popup = popup_info)  %>%
+  addLegend(pal = pal, values = round(final_mosquito_leaf$prop_pos_mos, digits = 3), opacity = 0.9) 
 
 #size of circle- total #
 #proportion of positive  mosquitoes viridis color
@@ -114,6 +130,7 @@ leaflet() %>%
   
 ```
 
+Try to redo leaflet
 ```{r}
 
 
@@ -247,7 +264,6 @@ ggplot(pos_plus_all, aes(x = no_mos, y = precip_mean)) +
 ```
 
 
-
 Build prediction model for proportion of positive mosquitos
 ```{r}
 
@@ -289,7 +305,6 @@ pairs(data_wo_char)
 cor(data_wo_char)
 
 library(caret)
-
 
 findCorrelation(all_data, cutoff = .75)
 
