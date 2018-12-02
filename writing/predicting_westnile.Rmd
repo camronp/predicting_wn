@@ -21,12 +21,16 @@ library(viridisLite)
 library(tidyr)
 library(rnoaa)
 library(corrplot)
+library(mfp)
 
 ```
 
+Read in positive mosquito data and clean
+Calculate proportion of positive mosquitoes
 ```{r}
 mosquito_data_original <- read_csv("https://data.cityofchicago.org/api/views/jqe8-8r6s/rows.csv?accessType=DOWNLOAD") 
 
+# clean column names
 mosquito_data <- mosquito_data_original %>%
   filter(`SEASON YEAR` %in% c(2016, 2017, 2018)) %>%
   mutate(`TEST DATE` = mdy_hms(`TEST DATE`)) %>%
@@ -34,24 +38,25 @@ mosquito_data <- mosquito_data_original %>%
   rename(year = `season year`, test_id = `test id`, test_date = `test date`,
          number_mosquitos = `number of mosquitoes`) 
 
-mosquito_data_avg <- mosquito_data %>%
+# find the total # mosquitoes collected each week
+mosquito_data_tot <- mosquito_data %>%
   group_by(week, year) %>%
   summarise(total_no_mos = sum(number_mosquitos))
 
-
+# find the sum of the # of positive mosquitoes collected each week
 positive_mosquito <- mosquito_data %>%
   group_by(week, year) %>%
   filter(result == "positive") %>%
   summarise(pos_mos_no = sum(number_mosquitos))
 
-
-final <- mosquito_data_avg %>%
+# join the positive mosquitoes and total # of mosquitoes and calculate the proportion of positive mosquitoes collected each week 
+final_mosquito <- mosquito_data_tot %>%
   full_join(positive_mosquito) %>%
   mutate_if(is.integer, funs(replace(., is.na(.), 0))) %>%
   mutate(prop_pos_mos = pos_mos_no / total_no_mos) %>%
   select(week, year, pos_mos_no, total_no_mos, prop_pos_mos) 
 
-head(final)
+head(final_mosquito)
 
   
 ```
@@ -83,9 +88,10 @@ storm_events <- unique(all_storm[c("year", "week", "event_type")])
 ```
 
 Add interactive feature with number of positive or negative mosquitos found
+Can use to see the locations where more positive mosquitoes are found
 ```{r}
 
-pal <- colorFactor(viridis(2), mosquito_data$result)
+pal <- colorFactor(viridis(2), final_mos$result)
 
 popup_info <- paste0("<b>Time<b>", mosquito_data$test_date,
                      "<b>Case<b>", mosquito_data$result)
@@ -106,8 +112,26 @@ leaflet() %>%
   
 ```
 
+```{r}
 
 
+pal <- colorFactor(viridis(2), final_mosquito$prop_pos_mos)
+
+popup_info <- paste0("<b>Time<b>", mosquito_data$week,
+                     "<b>Case<b>", mosquito_data$prop_pos_mos)
+
+leaflet() %>%
+  addTiles() %>%
+  addCircleMarkers(data = final_mosquito, radius = 2, lng = ~longitude, lat = ~latitude, 
+                   color = pal(mosquito_data$result), opacity = 0.9, group = "mosquito", popup = popup_info) %>% 
+  addCircleMarkers(data = mosquito_data, radius = 2, lng = ~longitude, lat = ~latitude, 
+                   color = pal(positive_mosquito$result), opacity = 0.9, group = "positive mosquito") %>%
+  addLegend(pal = pal, values = mosquito_data$result, opacity = 0.9) %>%
+  addLayersControl(baseGroups = c("base map"),
+                   overlayGroups = c("mosquito", "positive mosquito"))
+```
+
+Read in soil data and clean up
 ```{r, st. charles soil data}
 soil_2017 <- read.delim("https://www.isws.illinois.edu/warm/data/cdfs/stcday.txt") %>% 
   filter(year %in% c(2016, 2017)) %>%
@@ -137,20 +161,20 @@ all_soil_temps <-
   mutate(avg_soiltemp_4in_sod = as.numeric(as.character(avg_soiltemp_4in_sod))) %>%
   mutate(avg_soiltemp_2in_bare = as.numeric(as.character(avg_soiltemp_2in_bare))) %>%
   group_by(year, week) %>% 
-  summarise(avg_soil_t_4 = mean(avg_soiltemp_4in_sod, na.rm = TRUE),
-            avg_soil_t_2 = mean(avg_soiltemp_2in_bare, na.rm = TRUE))
+  summarise(avg_soil_t_4 = mean(avg_soiltemp_4in_sod, 
+                                na.rm = TRUE),
+            avg_soil_t_2 = mean(avg_soiltemp_2in_bare, 
+                                na.rm = TRUE))
 
 head(all_soil_temps)
-
 
 tail(all_soil_temps)
 
 ```
 
 
-
+Read in weather data and clean up
 ```{r weather}
-
 
 weather_data <- read_csv("../data/weather_data.csv") %>% 
   rename(station = "STATION",
@@ -162,25 +186,19 @@ weather_data <- read_csv("../data/weather_data.csv") %>%
   mutate(year = year(date)) %>%
   filter(month(date) > 4 & month(date) < 11)
 
-colnames(weather_data)
-
-#works for all?
 weather_data <- weather_data %>% 
   group_by(year, week) %>% 
   summarise(precip_mean = mean(precip, na.rm = TRUE)) %>% 
   ungroup()
+
 ```
 
-
+Join all of the datasets together
 ```{r}
 
-
-#df1 <- full_join(mosquito_data, all_storm, all_soil_temps, weather_data)
-
-all_data <- full_join(final, storm_events)
-all_data <- full_join(all_data, all_soil_temps)
-all_data <- full_join(all_data, weather_data)
-
+all_data <- left_join(final_mosquito, storm_events)
+all_data <- left_join(all_data, all_soil_temps)
+all_data <- left_join(all_data, weather_data)
 
 head(all_data)
 
@@ -189,20 +207,17 @@ head(all_data)
 Plot positive mosquito and precipitation
 
 Compare the preciptation by week and positive mosquitos by week on top of each other to see similarities-- acutally try to add on top of graph
+ 
 ```{r}
 
-head(positive_mosquito)
-
-all_pos <- full_join(positive_mosquito, all_data) %>%
+pos_2016 <- full_join(positive_mosquito, all_data) %>%
   filter(year == 2016)
-          
-head(all_pos)
 
 library(ggplot2)
 
 # 2D hexbin plots
 
-ggplot(all_pos, aes(x = week, y = precip_mean)) +
+ggplot(pos_2016, aes(x = week, y = precip_mean)) +
   geom_point() +
   geom_smooth() +
   labs(x = "Week of 2016", y = "Precipitation in inches??")
@@ -229,50 +244,47 @@ ggplot(pos_plus_all, aes(x = no_mos, y = precip_mean)) +
 
 ```
 
-If soil temp and moisture are highly corelated- may not need both
-
-Time as x axis as predictor, bar charts with toal length of bar= number of mosquitos, color = # or mosquitos tested positive
-
-Could do with total # of posquitos or proportion
-
-Geom smooth for weather events or seasonal patterns for time - won't see outlier, just average
-
-regression tree- works better than linear when looking at many things strongly correlated
 
 
+Build prediction model for proportion of positive mosquitos
 ```{r}
 
-colnames(all_data)
-
-tail(all_data)
-#23 weeks 2016, t4 = 68.7, t2 = 70.47, precip = 0.059 --> pos prop = 0
-
 equation_test <- formula(prop_pos_mos ~ fp(precip_mean) + fp(avg_soil_t_4) + fp(avg_soil_t_2) + fp(week))
-
-library(mfp)
 
 mfp_testing <- mfp(equation_test, data = all_data, select = 0.05)
 
 summary(mfp_testing)
 
 mos_mod <- lm(mfp_testing$formula, all_data)
+
 summary(mos_mod)
 
-
+# test prediction model
 predict.lm(mos_mod, data_frame(precip_mean = 0.078, avg_soil_t_4 = 72.1, avg_soil_t_2 = 74.7, week = 34))
 
-all_data %>%
-  filter(week == 34)
-
-#week 34, 2017 0.52 predict
-# 72.1 t4, 74.7 t2, 0.078 precip
+#week 34 2017:  72.1 t4, 74.7 t2, 0.078 precip --> actual propotion = 0.52, 
 ```
 
-Correlation matrix using correlogram (in works until joined dataset available)
+Correlation matrix using correlogram 
+Looks at different types of correlograms to visualize data
 
 ```{r}
-#correlation <- cor()
-#corrplot(x, method = "number")
+
+# Remove columns with character values
+data_wo_char <- all_data %>%
+  select(-event_type, -year)
+
+correlation <- cor(data_wo_char)
+
+corrplot::corrplot(correlation, method = "number")
+
+corrplot.mixed(correlation)
+
+corrplot(correlation, method = "number", "upper")
+
+pairs(data_wo_char)
+
+cor(data_wo_char)
 ```
 
 
