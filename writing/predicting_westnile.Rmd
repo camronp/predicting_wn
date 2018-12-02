@@ -36,12 +36,14 @@ mosquito_data <- mosquito_data_original %>%
   mutate(`TEST DATE` = mdy_hms(`TEST DATE`)) %>%
   rename_all(.funs = str_to_lower) %>%
   rename(year = `season year`, test_id = `test id`, test_date = `test date`,
-         number_mosquitos = `number of mosquitoes`) 
+
+         number_mosquitos = `number of mosquitoes`)
 
 # find the total # mosquitoes collected each week
 mosquito_data_tot <- mosquito_data %>%
   group_by(week, year) %>%
   summarise(total_no_mos = sum(number_mosquitos))
+
 
 # find the sum of the # of positive mosquitoes collected each week
 positive_mosquito <- mosquito_data %>%
