@@ -270,8 +270,10 @@ all_data %>%
 Correlation matrix using correlogram (in works until joined dataset available)
 
 ```{r}
-#correlation <- cor()
-#corrplot(x, method = "number")
+library(caret)
+
+
+findCorrelation(all_data, cutoff = .75)
 ```
 
 
