@@ -156,9 +156,6 @@ weather_data %>%
 
 ```{r}
 
-
-df1 <- full_join(mosquito_data, all_storm, all_soil_temps, weather_data)
-
 all_data <- full_join(mosquito_data, storm_events)
 all_data <- full_join(all_data, all_soil_temps)
 all_data <- full_join(all_data, weather_data)
