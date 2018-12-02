@@ -33,6 +33,7 @@ mosquito_data <- mosquito_data_original %>%
   rename_all(.funs = str_to_lower) %>%
   rename(year = `season year`, test_id = `test id`, test_date = `test date`,
          number_mosquitos = `number of mosquitoes`)
+  
 
 head(mosquito_data)
 
