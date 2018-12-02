@@ -177,7 +177,7 @@ weather_data <- weather_data %>%
 
 #df1 <- full_join(mosquito_data, all_storm, all_soil_temps, weather_data)
 
-all_data <- full_join(mosquito_data, storm_events)
+all_data <- full_join(final, storm_events)
 all_data <- full_join(all_data, all_soil_temps)
 all_data <- full_join(all_data, weather_data)
 
@@ -244,13 +244,28 @@ regression tree- works better than linear when looking at many things strongly c
 
 colnames(all_data)
 
-equation_test <- formula(number_mosquitos ~ fp(precip_mean) + fp(avg_soil_t_4))
+tail(all_data)
+#23 weeks 2016, t4 = 68.7, t2 = 70.47, precip = 0.059 --> pos prop = 0
+
+equation_test <- formula(prop_pos_mos ~ fp(precip_mean) + fp(avg_soil_t_4) + fp(avg_soil_t_2) + fp(week))
 
 library(mfp)
 
 mfp_testing <- mfp(equation_test, data = all_data, select = 0.05)
 
 summary(mfp_testing)
+
+mos_mod <- lm(mfp_testing$formula, all_data)
+summary(mos_mod)
+
+
+predict.lm(mos_mod, data_frame(precip_mean = 0.078, avg_soil_t_4 = 72.1, avg_soil_t_2 = 74.7, week = 34))
+
+all_data %>%
+  filter(week == 34)
+
+#week 34, 2017 0.52 predict
+# 72.1 t4, 74.7 t2, 0.078 precip
 ```
 
 Correlation matrix using correlogram (in works until joined dataset available)
