@@ -32,15 +32,28 @@ mosquito_data <- mosquito_data_original %>%
   mutate(`TEST DATE` = mdy_hms(`TEST DATE`)) %>%
   rename_all(.funs = str_to_lower) %>%
   rename(year = `season year`, test_id = `test id`, test_date = `test date`,
-         number_mosquitos = `number of mosquitoes`)
+         number_mosquitos = `number of mosquitoes`) 
 
-head(mosquito_data)
+mosquito_data_avg <- mosquito_data %>%
+  group_by(week, year) %>%
+  summarise(total_no_mos = sum(number_mosquitos))
+
 
 positive_mosquito <- mosquito_data %>%
-  filter(result == "positive")
+  group_by(week, year) %>%
+  filter(result == "positive") %>%
+  summarise(pos_mos_no = sum(number_mosquitos))
 
 
+final <- mosquito_data_avg %>%
+  full_join(positive_mosquito) %>%
+  mutate_if(is.integer, funs(replace(., is.na(.), 0))) %>%
+  mutate(prop_pos_mos = pos_mos_no / total_no_mos) %>%
+  select(week, year, pos_mos_no, total_no_mos, prop_pos_mos) 
 
+head(final)
+
+  
 ```
 
 Read in and clean storm data
@@ -225,6 +238,20 @@ Could do with total # of posquitos or proportion
 Geom smooth for weather events or seasonal patterns for time - won't see outlier, just average
 
 regression tree- works better than linear when looking at many things strongly correlated
+
+
+```{r}
+
+colnames(all_data)
+
+equation_test <- formula(number_mosquitos ~ fp(precip_mean) + fp(avg_soil_t_4))
+
+library(mfp)
+
+mfp_testing <- mfp(equation_test, data = all_data, select = 0.05)
+
+summary(mfp_testing)
+```
 
 Correlation matrix using correlogram (in works until joined dataset available)
 
