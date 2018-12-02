@@ -287,6 +287,12 @@ corrplot(correlation, method = "number", "upper")
 pairs(data_wo_char)
 
 cor(data_wo_char)
+
+library(caret)
+
+
+findCorrelation(all_data, cutoff = .75)
+
 ```
 
 
