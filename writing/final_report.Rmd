@@ -1,0 +1,58 @@
+---
+title: "Final Project Report - Predicting West Nile"
+author: "Group 3 - Camron Pearce, Amy Fox, Alyssa Melvin, Kayla Williams"
+date: "December 7, 2018"
+output: html_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+#Aim
+
+To build a predictive model that incorporates weather to provide early indications of the risk of WNV infection in Chicago, Illinois. 
+
+#Datasets Used
+	
+	We used mosquito trap data from Chicago, Illinois which we found in a Kaggle competition website. We had some issues trying to find usable data for Colorado or other regions in the US, so we settled with this particular dataset. This particular data set had information on the year and week the trap was set and collected, the test ID, the trap number, the block or location where the trap was set, the type of trap, the test date of the mosquito specimens, the number of mosquitos tested, the result of the mosquitos that were tested, the species identification of the mosquitos, and the latitude and longitude of the trap locations. A majority of the traps set were Gravid traps which are designed to catch *Culex* species that are capable of transmitting the West Nile virus.
+
+INSERT DATA TABLE HERE
+
+	When we were researching things that may influence WNV infection of mosquitos, we found a paper that explained soil temperature, precipitation, wind speed, and relative humidity have some sort of association with WNV infected mosquitos in Northern Greece. With that in mind, we chose NOAA weather data. We had quite a few columns which had mostly NAs so we wanted to filter it down to just precipitation for this particular project. We grouped the data by year and week and found the mean precipitation for that week and year. 
+
+INSERT DATA TABLE HERE
+
+	We wanted to find soil temperature data as well. We found soil data in an area that was near Illinois, but about 20 miles away. When we spoke with professionals in the field, we were told it would be beneficial to filter our data to average soil temperature in 4 inch sod and average soil temperature in 2 inch bare soil. We also grouped this data by week and year and found the average for those weeks. 
+
+INSERT DATA TABLE HERE
+
+#Discovery of Interesting Things	
+
+	There was a large number of positive WNV tested mosquitos the 30th week of 2016. The dates for this time were July 25th through July 31st. The precipitation mean during that time was 0.467 (units??). There is a negative association between the average soil temperatures (in both 2 inch bare soil and in 4 inch sod) and precipitation. 
+How project fits into West Nile research
+	West Nile virus is mostly spread to people by mosquito bites. Mosquito season in North America starts in the summer and continues through fall. There are no vaccines to prevent or medications to treat West Nile Virus (WNV) and cases have been reported in all of the US. Most people infected with WNV do not have symptoms, but about 1 in 5 people who are infected will develop a fever and other symptoms (CDC, 2018). Approximately 1 in 150 infected people will develop a serious illness (CDC, 2018). Since WNV is a virus of public health importance, it’s important to understand its current and future risk factors. Understanding the risk of WNV infection in the mosquito population will help us understand the risk of WNV infection in humans and what prevention methods will be communicated during most severe WNV infection times. 
+	Mosquito based surveillance has been a practical and popular way to estimate the risk of transmission of WNV to people. Temperature and precipitation play a role in driving mosquito infection rates and transmission of WNV. Weather conditions and patterns of meteorological events have important consequences for WNV transmission as well. High temperatures and low precipitation can often increase WNV mosquito infection.
+
+#How we tackled the problem
+
+	First we had to find the data we wanted to use from various sources. We then had to clean the data and modify it to a point where we could use it for what we had planned to do. 
+……
+
+#Challenges
+
+	As mentioned earlier, we did have issues finding usable data. We found quite a bit of information but unfortunately not in files we could use in R. The Center for Disease Control and Prevention (CDC) has a lot of information but it is mostly static maps we couldn’t find base data for. Vector Disease Control International also had quite a bit of information, but again unfortunately no hard data files. For this reason, and time restraints, is why we settled with Chicago mosquito trap data we found on the Kaggle competition website. 
+	We also had a hard time conceptualizing exactly what we wanted to predict. We started going down a hole of collecting a bunch of data and had to quickly realize we needed to pull back a bit. We had a lot of really great ideas and needed to decide what would be feasible in the small amount of time we had. We talked about how this particular project is sometimes an entire thesis for some students and we only had a few weeks to complete it. 
+
+#What we’d do differently
+
+* Decide on what we want to predict quicker
+ + Choose something easy  
+* Contact Public Health Departments or other entities at the beginning for access to data
+* Really understand prediction models in R
+* Create document where we record the changes made and by whom
+
+	
+##References:
+
+Centers for Disease Control and Prevention (CDC). West Nile virus. November 28, 2018. Retrieved from: https://www.cdc.gov/westnile/index.html
