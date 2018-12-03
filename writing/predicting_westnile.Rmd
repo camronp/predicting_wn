@@ -93,9 +93,8 @@ Add interactive feature with number of positive or negative mosquitos found
 Can use to see the locations where more positive mosquitoes are found
 ```{r}
 
-<<<<<<< HEAD
 pal <- colorFactor(viridis(2), final_mosquito$result)
-=======
+
 # find the total # mosquitoes collected each week
 mosquito_data_tot_leaf <- mosquito_data %>%
   group_by(latitude, longitude) %>%
