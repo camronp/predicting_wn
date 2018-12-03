@@ -202,9 +202,7 @@ Read in weather data and clean up
 weather_data <- read_csv("../data/weather_data.csv") %>% 
   rename(station = "STATION",
          name = "NAME",
-         date = "DATE",
-         wind_speed = "AWND",
-         precip = "PRCP") %>% 
+         date = "DATE") %>% 
   mutate(week = week(date)) %>% 
   mutate(year = year(date)) %>%
   filter(month(date) > 4 & month(date) < 11)
