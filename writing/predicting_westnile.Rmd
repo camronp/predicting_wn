@@ -22,6 +22,7 @@ library(tidyr)
 library(rnoaa)
 library(corrplot)
 library(mfp)
+library(ggplot2)
 
 ```
 
@@ -220,6 +221,7 @@ head(weather_data)
 
 ```
 
+
 Join all of the datasets together
 ```{r}
 
@@ -330,6 +332,31 @@ data_wo_char %>%
   rearrange() %>% 
   shave() %>% 
   fashion()
+```
+
+```{r}
+
+#want to find R^2 to see if there is any correlation between positive mosquitos and 
+#different weather variables individually
+
+#average temp
+ggplot(all_data, aes(x = avg_temp, y = total_no_mos, color = pos_mos_no)) +
+  geom_point()
+
+#min temp
+ggplot(all_data, aes(x = TMIN_avg, y = total_no_mos, color = pos_mos_no)) +
+  geom_point()
+
+#max temp
+ggplot(all_data, aes(x = TMAX_avg, y = total_no_mos, color = pos_mos_no)) +
+  geom_point()
+
+#wind speed
+ggplot(all_data, aes(x = WDMV, y = total_no_mos, color = pos_mos_no)) +
+  geom_point()
+  
+  
+
 ```
 
 
