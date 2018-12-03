@@ -93,7 +93,7 @@ Add interactive feature with number of positive or negative mosquitos found
 Can use to see the locations where more positive mosquitoes are found
 ```{r}
 
-pal <- colorFactor(viridis(2), final_mos$result)
+pal <- colorFactor(viridis(2), final_mosquito$result)
 
 popup_info <- paste0("<b>Time<b>", mosquito_data$test_date,
                      "<b>Case<b>", mosquito_data$result)
@@ -288,12 +288,20 @@ pairs(data_wo_char)
 
 cor(data_wo_char)
 
-library(caret)
-
-
-findCorrelation(all_data, cutoff = .75)
-
 ```
 
+```{r}
+library(corrr)
+
+data_wo_char %>% 
+    correlate() %>% 
+  network_plot(min_cor = .2)
+
+data_wo_char %>% 
+  correlate() %>% 
+  rearrange() %>% 
+  shave() %>% 
+  fashion()
+```
 
 
