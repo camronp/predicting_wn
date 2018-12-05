@@ -59,7 +59,7 @@ final_mosquito <- mosquito_data_tot %>%
   mutate(prop_pos_mos = pos_mos_no / total_no_mos) %>%
   select(week, year, pos_mos_no, total_no_mos, prop_pos_mos)
 
-kable(head(final_mosquito))
+kable(head(final_mosquito), align = "l")
 ```
 
 When we were researching things that may influence WNV infection of mosquitos, we found a paper that explained soil temperature, precipitation, wind speed, and relative humidity have some sort of association with WNV infected mosquitos in Northern Greece. With that in mind, we chose NOAA weather data. We had quite a few columns which had mostly NAs so we wanted to filter it down to just precipitation for this particular project. We grouped the data by year and week and found the mean precipitation for that week and year. 
@@ -92,7 +92,7 @@ precip_data <- read_csv("../data/precip.csv") %>%
   arrange(year, week) %>% 
   ungroup()
 
-kable(head(precip_data))
+kable(head(precip_data), align = "l")
 ```
 
 We wanted to find soil temperature data as well. We found soil data in an area that was near Illinois, but about 20 miles away. When we spoke with professionals in the field, we were told it would be beneficial to filter our data to average soil temperature in 4 inch sod and average soil temperature in 2 inch bare soil. We also grouped this data by week and year and found the average for those weeks. 
@@ -131,7 +131,7 @@ all_soil_temps <-
             avg_soil_t_2 = mean(avg_soiltemp_2in_bare, 
                                 na.rm = TRUE))
 
-kable(head(all_soil_temps))
+kable(head(all_soil_temps), align = "l")
 ```
 
 ```{r storm_data, echo = FALSE, message = FALSE, warning = FALSE}
@@ -170,11 +170,11 @@ First we had to find the data we wanted to use from various sources. We then had
 
 #Discovery of Interesting Things	
 
-There was a large number of positive WNV tested mosquitos the 30th week of 2016. The dates for this time were July 25th through July 31st. The precipitation mean during that time was 0.467 (units??). There is a negative association between the average soil temperatures (in both 2 inch bare soil and in 4 inch sod) and precipitation. 
+There was a large number of positive WNV tested mosquitos the 30th week of 2016. The dates for this time were July 25th through July 31st. The precipitation mean during that time was 0.467 inches. There is a negative association between the average soil temperatures (in both 2 inch bare soil and in 4 inch sod) and precipitation. 
 
 #How project fits into West Nile research
 
-West Nile virus is mostly spread to people by mosquito bites. Mosquito season in North America starts in the summer and continues through fall. There are no vaccines to prevent or medications to treat West Nile Virus (WNV) and cases have been reported in all of the US. Most people infected with WNV do not have symptoms, but about 1 in 5 people who are infected will develop a fever and other symptoms (CDC, 2018). Approximately 1 in 150 infected people will develop a serious illness (CDC, 2018). Since WNV is a virus of public health importance, it’s important to understand its current and future risk factors. Understanding the risk of WNV infection in the mosquito population will help us understand the risk of WNV infection in humans and what prevention methods will be communicated during most severe WNV infection times. 
+West Nile virus is mostly spread to people by mosquito bites. Mosquito season in North America starts in the summer and continues through fall. There are no vaccines to prevent or medications to treat West Nile Virus (WNV) and cases have been reported in all of the US. Most people infected with WNV do not have symptoms, but about 1 in 5 people who are infected will develop a fever and other symptoms (CDC, 2018). Approximately 1 in 150 infected people will develop a serious illness (CDC, 2018). Since WNV is a virus of public health importance, it’s important to understand its current and future risk factors. Understanding the risk of WNV infection in the mosquito population will help us understand the risk of WNV infection in humans and what prevention methods will need to be communicated during most severe WNV infection times. 
 Mosquito based surveillance has been a practical and popular way to estimate the risk of transmission of WNV to people. Temperature and precipitation play a role in driving mosquito infection rates and transmission of WNV. Weather conditions and patterns of meteorological events have important consequences for WNV transmission as well. High temperatures and low precipitation can often increase WNV mosquito infection.
 
 #Challenges
