@@ -227,10 +227,6 @@ all_data <- left_join(final_mosquito, storm_events, by = c("year", "week")) %>%
             left_join(all_soil_temps, by =  c("year", "week")) %>%
             left_join(weather_data, by =  c("year", "week")) %>% 
             left_join(precip_data, by =  c("year", "week"))
-  
-all_data <- left_join(all_data, all_soil_temps)
-all_data <- left_join(all_data, weather_data)
-all_data <- left_join(all_data, precip_data)
 
 head(all_data)
 
