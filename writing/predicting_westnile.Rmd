@@ -209,10 +209,9 @@ precip_data <- read_csv("../data/precip.csv") %>%
   mutate(week = week(DATE)) %>% 
   mutate(year = year(DATE)) %>%
   filter(month(DATE) > 4 & month(DATE) < 11) %>% 
+  select(year, week, PRCP) %>%
   group_by(year, week) %>% 
-  select(year, week, PRCP) %>% 
-  mutate(precip_mean = mean(PRCP, na.rm = TRUE)) %>%
-  select(-PRCP) %>% 
+  summarise(precip_mean = mean(PRCP, na.rm = TRUE)) %>%
   arrange(year, week) %>% 
   ungroup()
 
@@ -224,10 +223,10 @@ head(precip_data)
 Join all of the datasets together
 ```{r}
 
-all_data <- left_join(final_mosquito, storm_events)
-all_data <- left_join(all_data, all_soil_temps)
-all_data <- left_join(all_data, weather_data)
-all_data <- left_join(all_data, precip_data)
+all_data <- left_join(final_mosquito, storm_events, by = c("year", "week")) %>%
+            left_join(all_soil_temps, by =  c("year", "week")) %>%
+            left_join(weather_data, by =  c("year", "week")) %>% 
+            left_join(precip_data, by =  c("year", "week"))
 
 head(all_data)
 
@@ -360,6 +359,8 @@ ggplot(all_data, aes(x = WDMV, y = total_no_mos, color = pos_mos_no)) +
   geom_point()
 
 #soil temp
+
+#precip
 
   
   
