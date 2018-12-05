@@ -59,12 +59,43 @@ final_mosquito <- mosquito_data_tot %>%
   mutate(prop_pos_mos = pos_mos_no / total_no_mos) %>%
   select(week, year, pos_mos_no, total_no_mos, prop_pos_mos)
 
-head(final_mosquito)
+kable(head(final_mosquito))
 ```
 
 When we were researching things that may influence WNV infection of mosquitos, we found a paper that explained soil temperature, precipitation, wind speed, and relative humidity have some sort of association with WNV infected mosquitos in Northern Greece. With that in mind, we chose NOAA weather data. We had quite a few columns which had mostly NAs so we wanted to filter it down to just precipitation for this particular project. We grouped the data by year and week and found the mean precipitation for that week and year. 
 
-INSERT DATA TABLE HERE
+```{r weather_data, echo = FALSE, message = FALSE}
+weather_data <- read_csv("../data/weather_data.csv") %>% 
+  rename(station = "STATION",
+         name = "NAME",
+         date = "DATE") %>% 
+  mutate(week = week(date)) %>% 
+  mutate(year = year(date)) %>%
+  filter(month(date) > 4 & month(date) < 11) %>% 
+  group_by(year, week) %>% 
+  mutate(TMAX_avg = mean(TMAX, na.rm = TRUE)) %>% 
+  mutate(TMIN_avg = mean(TMIN, na.rm = TRUE)) %>% 
+  mutate(avg_temp = (TMIN_avg + TMAX_avg)/2) %>% 
+  select(-TOBS, -date, -SN32, -SN52, -SX32, -SX52, -station, -name,
+         -TMAX, -TMIN) %>% 
+  arrange(year, week) %>% 
+  ungroup()
+
+precip_data <- read_csv("../data/precip.csv") %>% 
+  select(PRCP, DATE) %>% 
+  mutate(week = week(DATE)) %>% 
+  mutate(year = year(DATE)) %>%
+  filter(month(DATE) > 4 & month(DATE) < 11) %>% 
+  group_by(year, week) %>% 
+  select(year, week, PRCP) %>% 
+  mutate(precip_mean = mean(PRCP, na.rm = TRUE)) %>%
+  select(-PRCP) %>% 
+  arrange(year, week) %>% 
+  ungroup()
+
+kable(head(precip_data))
+```
+
 
 We wanted to find soil temperature data as well. We found soil data in an area that was near Illinois, but about 20 miles away. When we spoke with professionals in the field, we were told it would be beneficial to filter our data to average soil temperature in 4 inch sod and average soil temperature in 2 inch bare soil. We also grouped this data by week and year and found the average for those weeks. 
 
