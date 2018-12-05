@@ -99,7 +99,47 @@ kable(head(precip_data))
 
 We wanted to find soil temperature data as well. We found soil data in an area that was near Illinois, but about 20 miles away. When we spoke with professionals in the field, we were told it would be beneficial to filter our data to average soil temperature in 4 inch sod and average soil temperature in 2 inch bare soil. We also grouped this data by week and year and found the average for those weeks. 
 
-INSERT DATA TABLE HERE
+```{r soil_temp_data, echo = FALSE, message = FALSE, warning = FALSE}
+soil_2017 <- read.delim("https://www.isws.illinois.edu/warm/data/cdfs/stcday.txt") %>% 
+  filter(year %in% c(2016, 2017)) %>%
+  select(year, month, day,
+         avg_soiltemp_4in_sod, avg_soiltemp_2in_bare) %>% 
+  unite(date, month, day, year, sep = "-") %>% 
+  mutate(date = mdy(date)) %>% 
+  mutate(week = week(date)) %>% 
+  mutate(year = year(date)) %>%
+  filter(month(date) > 4 & month(date) < 11) %>%
+  na.omit()
+
+soil_2018 <- 
+  read.delim("https://www.isws.illinois.edu/warm/data/cdfs/current/stcday18.txt") %>% 
+  select(year, month, day,
+         avg_soiltemp_4in_sod, avg_soiltemp_2in_bare) %>% 
+  unite(date, month, day, year, sep = "-") %>% 
+  mutate(date = mdy(date)) %>% 
+  slice(-1) %>% 
+  mutate(week = week(date)) %>% 
+  mutate(year = year(date)) %>%
+  filter(month(date) > 4 & month(date) < 11) %>%
+  na.omit()
+
+all_soil_temps <-
+  rbind(soil_2017, soil_2018) %>% 
+  mutate(avg_soiltemp_4in_sod = as.numeric(as.character(avg_soiltemp_4in_sod))) %>%
+  mutate(avg_soiltemp_2in_bare = as.numeric(as.character(avg_soiltemp_2in_bare))) %>%
+  group_by(year, week) %>% 
+  summarise(avg_soil_t_4 = mean(avg_soiltemp_4in_sod, 
+                                na.rm = TRUE),
+            avg_soil_t_2 = mean(avg_soiltemp_2in_bare, 
+                                na.rm = TRUE))
+
+kable(head(all_soil_temps))
+```
+
+#How we tackled the problem
+
+First we had to find the data we wanted to use from various sources. We then had to clean the data and modify it to a point where we could use it for what we had planned to do. 
+……
 
 #Discovery of Interesting Things	
 
@@ -109,11 +149,6 @@ There was a large number of positive WNV tested mosquitos the 30th week of 2016.
 
 West Nile virus is mostly spread to people by mosquito bites. Mosquito season in North America starts in the summer and continues through fall. There are no vaccines to prevent or medications to treat West Nile Virus (WNV) and cases have been reported in all of the US. Most people infected with WNV do not have symptoms, but about 1 in 5 people who are infected will develop a fever and other symptoms (CDC, 2018). Approximately 1 in 150 infected people will develop a serious illness (CDC, 2018). Since WNV is a virus of public health importance, it’s important to understand its current and future risk factors. Understanding the risk of WNV infection in the mosquito population will help us understand the risk of WNV infection in humans and what prevention methods will be communicated during most severe WNV infection times. 
 Mosquito based surveillance has been a practical and popular way to estimate the risk of transmission of WNV to people. Temperature and precipitation play a role in driving mosquito infection rates and transmission of WNV. Weather conditions and patterns of meteorological events have important consequences for WNV transmission as well. High temperatures and low precipitation can often increase WNV mosquito infection.
-
-#How we tackled the problem
-
-First we had to find the data we wanted to use from various sources. We then had to clean the data and modify it to a point where we could use it for what we had planned to do. 
-……
 
 #Challenges
 
