@@ -219,7 +219,18 @@ weather_data[, c("week", "year", "TMIN_avg", "TMAX_avg", "avg_temp", "WDMV")]
   
 head(weather_data)
 
-precip_data <- read_csv("../data/precip.csv")
+precip_data <- read_csv("../data/precip.csv") %>% 
+  select(PRCP, DATE) %>% 
+  mutate(week = week(DATE)) %>% 
+  mutate(year = year(DATE)) %>%
+  filter(month(DATE) > 4 & month(DATE) < 11) %>% 
+  group_by(year, week) %>% 
+  select(year, week, PRCP) %>% 
+  mutate(precip_mean = mean(PRCP, na.rm = TRUE)) %>%
+  select(-PRCP) %>% 
+  ungroup()
+
+head(precip_data)
 
 ```
 
@@ -230,6 +241,7 @@ Join all of the datasets together
 all_data <- left_join(final_mosquito, storm_events)
 all_data <- left_join(all_data, all_soil_temps)
 all_data <- left_join(all_data, weather_data)
+all_data <- left_join(all_data, precip_data)
 
 head(all_data)
 
