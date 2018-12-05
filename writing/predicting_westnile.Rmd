@@ -228,6 +228,7 @@ precip_data <- read_csv("../data/precip.csv") %>%
   select(year, week, PRCP) %>% 
   mutate(precip_mean = mean(PRCP, na.rm = TRUE)) %>%
   select(-PRCP) %>% 
+  arrange(year, week) %>% 
   ungroup()
 
 head(precip_data)
@@ -259,6 +260,7 @@ pos_2016 <- full_join(positive_mosquito, all_data) %>%
 library(ggplot2)
 
 # 2D hexbin plots
+
 
 ggplot(pos_2016, aes(x = week, y = precip_mean)) +
   geom_point() +
