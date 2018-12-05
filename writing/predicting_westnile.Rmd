@@ -217,6 +217,8 @@ precip_data <- read_csv("../data/precip.csv") %>%
 
 head(precip_data)
 
+
+
 ```
 
 
@@ -227,10 +229,6 @@ all_data <- left_join(final_mosquito, storm_events, by = c("year", "week")) %>%
             left_join(all_soil_temps, by =  c("year", "week")) %>%
             left_join(weather_data, by =  c("year", "week")) %>% 
             left_join(precip_data, by =  c("year", "week"))
-  
-all_data <- left_join(all_data, all_soil_temps)
-all_data <- left_join(all_data, weather_data)
-all_data <- left_join(all_data, precip_data)
 
 head(all_data)
 
@@ -253,7 +251,7 @@ library(ggplot2)
 ggplot(pos_2016, aes(x = week, y = precip_mean)) +
   geom_point() +
   geom_smooth() +
-  labs(x = "Week of 2016", y = "Precipitation in inches??")
+  labs(x = "Week of 2016", y = "Precipitation in inches??") +
   ggtitle("Precipitation by Week in 2016")
 
 new_mos<- mosquito_data %>%
@@ -279,9 +277,10 @@ ggplot(pos_plus_all, aes(x = no_mos, y = precip_mean)) +
 
 
 Build prediction model for proportion of positive mosquitos
+
 ```{r}
 
-equation_test <- formula(prop_pos_mos ~ fp(precip_mean) + fp(avg_soil_t_4) + fp(avg_soil_t_2) + fp(week) +fp(avg_temp) + fp(WDNV))
+equation_test <- formula(prop_pos_mos ~ fp(precip_mean) + fp(avg_soil_t_4) + fp(avg_soil_t_2) + fp(week) +fp(avg_temp))
 
 mfp_testing <- mfp(equation_test, data = all_data, select = 0.05)
 
@@ -296,6 +295,25 @@ predict.lm(mos_mod, data_frame(precip_mean = 0.078, avg_soil_t_4 = 72.1, avg_soi
 
 #week 34 2017:  72.1 t4, 74.7 t2, 0.078 precip --> actual propotion = 0.52, 
 ```
+First attempt at regression tree - could also try random forest
+```{r}
+
+library(rpart)
+
+# grow tree 
+tree_fit <- rpart(prop_pos_mos ~ precip_mean + avg_soil_t_4 + avg_soil_t_2 + week + avg_temp,
+  	method="class", data = all_data)
+
+printcp(tree_fit) # display the results 
+plotcp(tree_fit) # visualize cross-validation results 
+summary(tree_fit) # detailed summary of splits
+
+# plot tree 
+plot(tree_fit, uniform=TRUE, 
+  	main="Classification Tree for All data")
+text(tree_fit, cex=.8)
+```
+
 
 Correlation matrix using correlogram 
 Looks at different types of correlograms to visualize data
@@ -304,9 +322,7 @@ Looks at different types of correlograms to visualize data
 
 # Remove columns with character values
 data_wo_char <- all_data %>%
-  select(-event_type, -year)
-
-colnames(all_data)
+  select(-event_type, -year, -TMIN_avg, -TMAX_avg, -WDMV)
 
 correlation <- cor(data_wo_char)
 
@@ -316,9 +332,6 @@ corrplot.mixed(correlation)
 
 corrplot(correlation, method = "number", "upper")
 
-pairs(data_wo_char)
-
-cor(data_wo_char)
 
 ```
 
