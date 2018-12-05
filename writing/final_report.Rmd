@@ -134,10 +134,39 @@ all_soil_temps <-
 kable(head(all_soil_temps))
 ```
 
+```{r storm_data, echo = FALSE, message = FALSE, warning = FALSE}
+storms_2016 <- read_csv("../data/StormEvents_details-ftp_v1.0_d2016_c20180718.csv") 
+
+storms_2017 <- read_csv("../data/StormEvents_details-ftp_v1.0_d2017_c20181017.csv")
+
+storms_2018 <- read_csv("../data/StormEvents_details-ftp_v1.0_d2018_c20181017.csv")
+
+all_storm <- rbind(storms_2016, storms_2017, storms_2018) %>%
+  rename_all(.funs = str_to_lower) %>%
+  filter(state == "ILLINOIS" & cz_name == "COOK") %>%
+  mutate(date = begin_date_time) %>%
+  select(date, event_type, begin_lat, begin_lon, end_lat, end_lon) %>%
+  mutate(date = dmy_hms(date)) %>%
+  mutate(week = week(date), 
+         year = year(date)) %>%
+  filter(month(date) > 4 & month(date) < 11)
+storm_events <- unique(all_storm[c("year", "week", "event_type")])
+
+```
+
+
+```{r joining_all_data, echo = FALSE, message = FALSE, warning = FALSE}
+all_data <- left_join(final_mosquito, storm_events, by = c("year", "week")) %>%
+            left_join(all_soil_temps, by =  c("year", "week")) %>%
+            left_join(weather_data, by =  c("year", "week")) %>% 
+            left_join(precip_data, by =  c("year", "week"))
+
+```
+
 #How we tackled the problem
 
 First we had to find the data we wanted to use from various sources. We then had to clean the data and modify it to a point where we could use it for what we had planned to do. 
-……
+
 
 #Discovery of Interesting Things	
 
