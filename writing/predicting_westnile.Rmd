@@ -114,45 +114,30 @@ final_mosquito_leaf <- mosquito_data_tot_leaf %>%
   mutate_if(is.integer, funs(replace(., is.na(.), 0))) %>%
   mutate(prop_pos_mos = pos_mos_no / total_no_mos) %>%
   select(latitude, longitude, pos_mos_no, total_no_mos, prop_pos_mos)
->>>>>>> 6e690765bb2a37eeb7cea7d64520398fa1438b84
 
-pal <- colorFactor(viridis(10), final_mosquito_leaf$prop_pos_mos)
 
 popup_info <- paste0("<b>Proportion positive mosquitoes<b>", final_mosquito_leaf$prop_pos_mos)
 
-leaflet() %>%
-  addTiles() %>%
-  addCircleMarkers(data = final_mosquito_leaf, radius = ~final_mosquito_leaf$prop_pos_mos*10,
-                   lng = ~longitude, lat = ~latitude, 
-                   color = pal(final_mosquito_leaf$prop_pos_mos), opacity = 0.9,
-                   group = "mosquito", popup = popup_info)  %>%
-  addLegend(pal = pal, values = round(final_mosquito_leaf$prop_pos_mos, digits = 3), opacity = 0.9) 
+pal <- colorNumeric(
+  palette = "YlGnBu",
+  domain = final_mosquito_leaf$prop_pos_mos
+  
+  
+)
 
-#size of circle- total #
-#proportion of positive  mosquitoes viridis color
-# 
+leaflet(data = final_mosquito_leaf) %>%
+  addTiles() %>%
+  addCircleMarkers(data = final_mosquito_leaf, radius = ~prop_pos_mos*10,
+                   lng = ~longitude, lat = ~latitude, 
+                   color = ~pal(prop_pos_mos),
+                   group = "mosquito", popup = popup_info)  %>%
+  addLegend(pal = pal, values = ~prop_pos_mos, opacity = 0.9) 
+
+
   
 ```
 
-Try to redo leaflet
-```{r}
 
-
-pal <- colorFactor(viridis(2), final_mosquito$prop_pos_mos)
-
-popup_info <- paste0("<b>Time<b>", mosquito_data$week,
-                     "<b>Case<b>", mosquito_data$prop_pos_mos)
-
-leaflet() %>%
-  addTiles() %>%
-  addCircleMarkers(data = final_mosquito, radius = 2, lng = ~longitude, lat = ~latitude, 
-                   color = pal(mosquito_data$result), opacity = 0.9, group = "mosquito", popup = popup_info) %>% 
-  addCircleMarkers(data = mosquito_data, radius = 2, lng = ~longitude, lat = ~latitude, 
-                   color = pal(positive_mosquito$result), opacity = 0.9, group = "positive mosquito") %>%
-  addLegend(pal = pal, values = mosquito_data$result, opacity = 0.9) %>%
-  addLayersControl(baseGroups = c("base map"),
-                   overlayGroups = c("mosquito", "positive mosquito"))
-```
 
 Read in soil data and clean up
 ```{r, st. charles soil data}
@@ -219,6 +204,20 @@ weather_data[, c("week", "year", "TMIN_avg", "TMAX_avg", "avg_temp", "WDMV")]
   
 head(weather_data)
 
+precip_data <- read_csv("../data/precip.csv") %>% 
+  select(PRCP, DATE) %>% 
+  mutate(week = week(DATE)) %>% 
+  mutate(year = year(DATE)) %>%
+  filter(month(DATE) > 4 & month(DATE) < 11) %>% 
+  group_by(year, week) %>% 
+  select(year, week, PRCP) %>% 
+  mutate(precip_mean = mean(PRCP, na.rm = TRUE)) %>%
+  select(-PRCP) %>% 
+  arrange(year, week) %>% 
+  ungroup()
+
+head(precip_data)
+
 ```
 
 
@@ -228,6 +227,7 @@ Join all of the datasets together
 all_data <- left_join(final_mosquito, storm_events)
 all_data <- left_join(all_data, all_soil_temps)
 all_data <- left_join(all_data, weather_data)
+all_data <- left_join(all_data, precip_data)
 
 head(all_data)
 
@@ -245,6 +245,7 @@ pos_2016 <- full_join(positive_mosquito, all_data) %>%
 library(ggplot2)
 
 # 2D hexbin plots
+
 
 ggplot(pos_2016, aes(x = week, y = precip_mean)) +
   geom_point() +
@@ -277,7 +278,7 @@ ggplot(pos_plus_all, aes(x = no_mos, y = precip_mean)) +
 Build prediction model for proportion of positive mosquitos
 ```{r}
 
-equation_test <- formula(prop_pos_mos ~ fp(precip_mean) + fp(avg_soil_t_4) + fp(avg_soil_t_2) + fp(week))
+equation_test <- formula(prop_pos_mos ~ fp(precip_mean) + fp(avg_soil_t_4) + fp(avg_soil_t_2) + fp(week) +fp(avg_temp) + fp(WDNV))
 
 mfp_testing <- mfp(equation_test, data = all_data, select = 0.05)
 
@@ -301,6 +302,8 @@ Looks at different types of correlograms to visualize data
 # Remove columns with character values
 data_wo_char <- all_data %>%
   select(-event_type, -year)
+
+colnames(all_data)
 
 correlation <- cor(data_wo_char)
 
@@ -341,7 +344,8 @@ data_wo_char %>%
 
 #average temp
 ggplot(all_data, aes(x = avg_temp, y = total_no_mos, color = pos_mos_no)) +
-  geom_point()
+  geom_point() +
+  geom_smooth(se = FALSE)
 
 #min temp
 ggplot(all_data, aes(x = TMIN_avg, y = total_no_mos, color = pos_mos_no)) +
@@ -354,6 +358,9 @@ ggplot(all_data, aes(x = TMAX_avg, y = total_no_mos, color = pos_mos_no)) +
 #wind speed
 ggplot(all_data, aes(x = WDMV, y = total_no_mos, color = pos_mos_no)) +
   geom_point()
+
+#soil temp
+
   
   
 
