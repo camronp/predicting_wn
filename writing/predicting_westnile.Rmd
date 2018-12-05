@@ -114,10 +114,6 @@ final_mosquito_leaf <- mosquito_data_tot_leaf %>%
   mutate_if(is.integer, funs(replace(., is.na(.), 0))) %>%
   mutate(prop_pos_mos = pos_mos_no / total_no_mos) %>%
   select(latitude, longitude, pos_mos_no, total_no_mos, prop_pos_mos)
-<<<<<<< HEAD
-=======
-
->>>>>>> 87a5a599601d16e671a8c9631b0830ccde7694ef
 
 
 popup_info <- paste0("<b>Proportion positive mosquitoes<b>", final_mosquito_leaf$prop_pos_mos)
