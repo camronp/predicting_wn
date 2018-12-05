@@ -128,14 +128,24 @@ $(document).ready(function () {
 </div>
 
 
+<p>Our GitHub can be accessible <a href="https://github.com/camronp/predicting_wn">here</a>.</p>
 <div id="aim" class="section level1">
 <h1>Aim</h1>
 <p>To build a predictive model that incorporates weather to provide early indications of the risk of WNV infection in Chicago, Illinois.</p>
 </div>
 <div id="datasets-used" class="section level1">
 <h1>Datasets Used</h1>
-<p>We used mosquito trap data from Chicago, Illinois which we found in a Kaggle competition website. We had some issues trying to find usable data for Colorado or other regions in the US, so we settled with this particular dataset. This particular data set had information on the year and week the trap was set and collected, the test ID, the trap number, the block or location where the trap was set, the type of trap, the test date of the mosquito specimens, the number of mosquitos tested, the result of the mosquitos that were tested, the species identification of the mosquitos, and the latitude and longitude of the trap locations. A majority of the traps set were Gravid traps which are designed to catch <em>Culex</em> species that are capable of transmitting the West Nile virus.</p>
-<p>INSERT DATA TABLE HERE</p>
+<p>We used mosquito trap data from Chicago, Illinois which we found in a Kaggle competition website. We had some issues trying to find usable data for Colorado or other regions in the US, so we settled with this particular dataset. This particular data set had information on the year and week the trap was set and collected, the test ID, the trap number, the block or location where the trap was set, the type of trap, the test date of the mosquito specimens, the number of mosquitos tested, the result of the mosquitos that were tested, the species identification of the mosquitos, and the latitude and longitude of the trap locations. A majority of the traps set were Gravid traps which are designed to catch <em>Culex</em> species that are capable of transmitting the West Nile virus. We wanted to calculate the proportion of positive mosquitos collected each week and a snapshot of the resulting final data set is below.</p>
+<pre><code>## # A tibble: 6 x 5
+## # Groups:   week [2]
+##    week  year pos_mos_no total_no_mos prop_pos_mos
+##   &lt;int&gt; &lt;dbl&gt;      &lt;dbl&gt;        &lt;dbl&gt;        &lt;dbl&gt;
+## 1    23  2016          0          139      0      
+## 2    23  2017          0          550      0      
+## 3    23  2018         50         1127      0.0444 
+## 4    24  2016          0         1138      0      
+## 5    24  2017         44          533      0.0826 
+## 6    24  2018          2         1350      0.00148</code></pre>
 <p>When we were researching things that may influence WNV infection of mosquitos, we found a paper that explained soil temperature, precipitation, wind speed, and relative humidity have some sort of association with WNV infected mosquitos in Northern Greece. With that in mind, we chose NOAA weather data. We had quite a few columns which had mostly NAs so we wanted to filter it down to just precipitation for this particular project. We grouped the data by year and week and found the mean precipitation for that week and year.</p>
 <p>INSERT DATA TABLE HERE</p>
 <p>We wanted to find soil temperature data as well. We found soil data in an area that was near Illinois, but about 20 miles away. When we spoke with professionals in the field, we were told it would be beneficial to filter our data to average soil temperature in 4 inch sod and average soil temperature in 2 inch bare soil. We also grouped this data by week and year and found the average for those weeks.</p>
