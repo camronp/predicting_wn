@@ -114,7 +114,7 @@ final_mosquito_leaf <- mosquito_data_tot_leaf %>%
   mutate_if(is.integer, funs(replace(., is.na(.), 0))) %>%
   mutate(prop_pos_mos = pos_mos_no / total_no_mos) %>%
   select(latitude, longitude, pos_mos_no, total_no_mos, prop_pos_mos)
->>>>>>> 6e690765bb2a37eeb7cea7d64520398fa1438b84
+
 
 pal <- colorFactor(viridis(10), final_mosquito_leaf$prop_pos_mos)
 
