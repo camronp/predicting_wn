@@ -9,23 +9,137 @@ output: html_document
 knitr::opts_chunk$set(echo = TRUE)
 ```
 
+
+```{r load_libraries, echo = FALSE, message = FALSE}
+library(readr)
+library(dplyr)
+library(lubridate)
+library(stringr)
+library(leaflet)
+library(viridisLite)
+library(tidyr)
+library(rnoaa)
+library(ggplot2)
+library(knitr)
+library(broom)
+```
+
+Our GitHub can be accessible [here](https://github.com/camronp/predicting_wn).
+
 #Aim
 
 To build a predictive model that incorporates weather to provide early indications of the risk of WNV infection in Chicago, Illinois. 
 
 #Datasets Used
 	
-We used mosquito trap data from Chicago, Illinois which we found in a Kaggle competition website. We had some issues trying to find usable data for Colorado or other regions in the US, so we settled with this particular dataset. This particular data set had information on the year and week the trap was set and collected, the test ID, the trap number, the block or location where the trap was set, the type of trap, the test date of the mosquito specimens, the number of mosquitos tested, the result of the mosquitos that were tested, the species identification of the mosquitos, and the latitude and longitude of the trap locations. A majority of the traps set were Gravid traps which are designed to catch *Culex* species that are capable of transmitting the West Nile virus.
+We used mosquito trap data from Chicago, Illinois which we found in a Kaggle competition website. We had some issues trying to find usable data for Colorado or other regions in the US, so we settled with this particular dataset. This particular data set had information on the year and week the trap was set and collected, the test ID, the trap number, the block or location where the trap was set, the type of trap, the test date of the mosquito specimens, the number of mosquitos tested, the result of the mosquitos that were tested, the species identification of the mosquitos, and the latitude and longitude of the trap locations. A majority of the traps set were Gravid traps which are designed to catch *Culex* species that are capable of transmitting the West Nile virus. We wanted to calculate the proportion of positive mosquitos collected each week and a snapshot of the resulting final data set is below.
 
-INSERT DATA TABLE HERE
+```{r mosquito_data_table, echo = FALSE, message = FALSE}
+mosquito_data_original <- read_csv("https://data.cityofchicago.org/api/views/jqe8-8r6s/rows.csv?accessType=DOWNLOAD")
+
+mosquito_data <- mosquito_data_original %>%
+  filter(`SEASON YEAR` %in% c(2016, 2017, 2018)) %>%
+  mutate(`TEST DATE` = mdy_hms(`TEST DATE`)) %>%
+  rename_all(.funs = str_to_lower) %>%
+  rename(year = `season year`, test_id = `test id`, test_date = `test date`,
+         number_mosquitos = `number of mosquitoes`)
+
+mosquito_data_tot <- mosquito_data %>%
+  group_by(week, year) %>%
+  summarise(total_no_mos = sum(number_mosquitos))
+
+positive_mosquito <- mosquito_data %>%
+  group_by(week, year) %>%
+  filter(result == "positive") %>%
+  summarise(pos_mos_no = sum(number_mosquitos))
+
+final_mosquito <- mosquito_data_tot %>%
+  full_join(positive_mosquito) %>%
+  mutate_if(is.integer, funs(replace(., is.na(.), 0))) %>%
+  mutate(prop_pos_mos = pos_mos_no / total_no_mos) %>%
+  select(week, year, pos_mos_no, total_no_mos, prop_pos_mos)
+
+kable(head(final_mosquito))
+```
 
 When we were researching things that may influence WNV infection of mosquitos, we found a paper that explained soil temperature, precipitation, wind speed, and relative humidity have some sort of association with WNV infected mosquitos in Northern Greece. With that in mind, we chose NOAA weather data. We had quite a few columns which had mostly NAs so we wanted to filter it down to just precipitation for this particular project. We grouped the data by year and week and found the mean precipitation for that week and year. 
 
-INSERT DATA TABLE HERE
+```{r weather_data, echo = FALSE, message = FALSE}
+weather_data <- read_csv("../data/weather_data.csv") %>% 
+  rename(station = "STATION",
+         name = "NAME",
+         date = "DATE") %>% 
+  mutate(week = week(date)) %>% 
+  mutate(year = year(date)) %>%
+  filter(month(date) > 4 & month(date) < 11) %>% 
+  group_by(year, week) %>% 
+  mutate(TMAX_avg = mean(TMAX, na.rm = TRUE)) %>% 
+  mutate(TMIN_avg = mean(TMIN, na.rm = TRUE)) %>% 
+  mutate(avg_temp = (TMIN_avg + TMAX_avg)/2) %>% 
+  select(-TOBS, -date, -SN32, -SN52, -SX32, -SX52, -station, -name,
+         -TMAX, -TMIN) %>% 
+  arrange(year, week) %>% 
+  ungroup()
+
+precip_data <- read_csv("../data/precip.csv") %>% 
+  select(PRCP, DATE) %>% 
+  mutate(week = week(DATE)) %>% 
+  mutate(year = year(DATE)) %>%
+  filter(month(DATE) > 4 & month(DATE) < 11) %>% 
+  group_by(year, week) %>% 
+  select(year, week, PRCP) %>% 
+  mutate(precip_mean = mean(PRCP, na.rm = TRUE)) %>%
+  select(-PRCP) %>% 
+  arrange(year, week) %>% 
+  ungroup()
+
+kable(head(precip_data))
+```
+
 
 We wanted to find soil temperature data as well. We found soil data in an area that was near Illinois, but about 20 miles away. When we spoke with professionals in the field, we were told it would be beneficial to filter our data to average soil temperature in 4 inch sod and average soil temperature in 2 inch bare soil. We also grouped this data by week and year and found the average for those weeks. 
 
-INSERT DATA TABLE HERE
+```{r soil_temp_data, echo = FALSE, message = FALSE, warning = FALSE}
+soil_2017 <- read.delim("https://www.isws.illinois.edu/warm/data/cdfs/stcday.txt") %>% 
+  filter(year %in% c(2016, 2017)) %>%
+  select(year, month, day,
+         avg_soiltemp_4in_sod, avg_soiltemp_2in_bare) %>% 
+  unite(date, month, day, year, sep = "-") %>% 
+  mutate(date = mdy(date)) %>% 
+  mutate(week = week(date)) %>% 
+  mutate(year = year(date)) %>%
+  filter(month(date) > 4 & month(date) < 11) %>%
+  na.omit()
+
+soil_2018 <- 
+  read.delim("https://www.isws.illinois.edu/warm/data/cdfs/current/stcday18.txt") %>% 
+  select(year, month, day,
+         avg_soiltemp_4in_sod, avg_soiltemp_2in_bare) %>% 
+  unite(date, month, day, year, sep = "-") %>% 
+  mutate(date = mdy(date)) %>% 
+  slice(-1) %>% 
+  mutate(week = week(date)) %>% 
+  mutate(year = year(date)) %>%
+  filter(month(date) > 4 & month(date) < 11) %>%
+  na.omit()
+
+all_soil_temps <-
+  rbind(soil_2017, soil_2018) %>% 
+  mutate(avg_soiltemp_4in_sod = as.numeric(as.character(avg_soiltemp_4in_sod))) %>%
+  mutate(avg_soiltemp_2in_bare = as.numeric(as.character(avg_soiltemp_2in_bare))) %>%
+  group_by(year, week) %>% 
+  summarise(avg_soil_t_4 = mean(avg_soiltemp_4in_sod, 
+                                na.rm = TRUE),
+            avg_soil_t_2 = mean(avg_soiltemp_2in_bare, 
+                                na.rm = TRUE))
+
+kable(head(all_soil_temps))
+```
+
+#How we tackled the problem
+
+First we had to find the data we wanted to use from various sources. We then had to clean the data and modify it to a point where we could use it for what we had planned to do. 
+……
 
 #Discovery of Interesting Things	
 
@@ -35,11 +149,6 @@ There was a large number of positive WNV tested mosquitos the 30th week of 2016.
 
 West Nile virus is mostly spread to people by mosquito bites. Mosquito season in North America starts in the summer and continues through fall. There are no vaccines to prevent or medications to treat West Nile Virus (WNV) and cases have been reported in all of the US. Most people infected with WNV do not have symptoms, but about 1 in 5 people who are infected will develop a fever and other symptoms (CDC, 2018). Approximately 1 in 150 infected people will develop a serious illness (CDC, 2018). Since WNV is a virus of public health importance, it’s important to understand its current and future risk factors. Understanding the risk of WNV infection in the mosquito population will help us understand the risk of WNV infection in humans and what prevention methods will be communicated during most severe WNV infection times. 
 Mosquito based surveillance has been a practical and popular way to estimate the risk of transmission of WNV to people. Temperature and precipitation play a role in driving mosquito infection rates and transmission of WNV. Weather conditions and patterns of meteorological events have important consequences for WNV transmission as well. High temperatures and low precipitation can often increase WNV mosquito infection.
-
-#How we tackled the problem
-
-First we had to find the data we wanted to use from various sources. We then had to clean the data and modify it to a point where we could use it for what we had planned to do. 
-……
 
 #Challenges
 
