@@ -86,16 +86,14 @@ precip_data <- read_csv("../data/precip.csv") %>%
   mutate(week = week(DATE)) %>% 
   mutate(year = year(DATE)) %>%
   filter(month(DATE) > 4 & month(DATE) < 11) %>% 
+  select(year, week, PRCP) %>%
   group_by(year, week) %>% 
-  select(year, week, PRCP) %>% 
-  mutate(precip_mean = mean(PRCP, na.rm = TRUE)) %>%
-  select(-PRCP) %>% 
+  summarise(precip_mean = mean(PRCP, na.rm = TRUE)) %>%
   arrange(year, week) %>% 
   ungroup()
 
 kable(head(precip_data))
 ```
-
 
 We wanted to find soil temperature data as well. We found soil data in an area that was near Illinois, but about 20 miles away. When we spoke with professionals in the field, we were told it would be beneficial to filter our data to average soil temperature in 4 inch sod and average soil temperature in 2 inch bare soil. We also grouped this data by week and year and found the average for those weeks. 
 
