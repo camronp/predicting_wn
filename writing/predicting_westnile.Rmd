@@ -219,6 +219,8 @@ weather_data[, c("week", "year", "TMIN_avg", "TMAX_avg", "avg_temp", "WDMV")]
   
 head(weather_data)
 
+precip_data <- read_csv("../data/precip.csv")
+
 ```
 
 
@@ -341,7 +343,8 @@ data_wo_char %>%
 
 #average temp
 ggplot(all_data, aes(x = avg_temp, y = total_no_mos, color = pos_mos_no)) +
-  geom_point()
+  geom_point() +
+  geom_smooth(se = FALSE)
 
 #min temp
 ggplot(all_data, aes(x = TMIN_avg, y = total_no_mos, color = pos_mos_no)) +
@@ -354,6 +357,9 @@ ggplot(all_data, aes(x = TMAX_avg, y = total_no_mos, color = pos_mos_no)) +
 #wind speed
 ggplot(all_data, aes(x = WDMV, y = total_no_mos, color = pos_mos_no)) +
   geom_point()
+
+#soil temp
+
   
   
 
