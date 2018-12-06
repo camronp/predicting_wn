@@ -184,7 +184,8 @@ tail(all_soil_temps)
 Read in weather data and clean up
 ```{r weather}
 
-weather_data <- read_csv("../data/weather_data.csv") %>% 
+weather_data <- 
+  read_csv("../data/weather_data.csv") %>% 
   rename(station = "STATION",
          name = "NAME",
          date = "DATE") %>% 
@@ -195,10 +196,14 @@ weather_data <- read_csv("../data/weather_data.csv") %>%
   mutate(TMAX_avg = mean(TMAX, na.rm = TRUE)) %>% 
   mutate(TMIN_avg = mean(TMIN, na.rm = TRUE)) %>% 
   mutate(avg_temp = (TMIN_avg + TMAX_avg)/2) %>% 
+  mutate(max_wind = max(WDMV, na.rm = TRUE )) %>% 
   select(-TOBS, -date, -SN32, -SN52, -SX32, -SX52, -station, -name,
-         -TMAX, -TMIN) %>% 
-  arrange(year, week) %>% 
+         -TMAX, -TMIN, -WDMV) %>% 
+  arrange(year, week) %>%
+  filter(row_number() == 1) %>% 
   ungroup()
+  
+  
 
 weather_data[, c("week", "year", "TMIN_avg", "TMAX_avg", "avg_temp", "WDMV")]
   
@@ -291,7 +296,7 @@ mos_mod <- lm(mfp_testing$formula, all_data)
 summary(mos_mod)
 
 # test prediction model
-predict.lm(mos_mod, data_frame(precip_mean = 0.078, avg_soil_t_4 = 72.1, avg_soil_t_2 = 74.7, week = 34))
+predict.lm(mos_mod, data_frame(precip_mean = 0.078, avg_soil_t_4 = 72.1, avg_soil_t_2 = 74.7, week = 34, avg_temp = 75))
 
 #week 34 2017:  72.1 t4, 74.7 t2, 0.078 precip --> actual propotion = 0.52, 
 ```
@@ -322,7 +327,7 @@ Looks at different types of correlograms to visualize data
 
 # Remove columns with character values
 data_wo_char <- all_data %>%
-  select(-event_type, -year, -TMIN_avg, -TMAX_avg, -WDMV)
+  select(-event_type, -year, -TMIN_avg, -TMAX_avg, -max_wind)
 
 correlation <- cor(data_wo_char)
 
@@ -372,7 +377,7 @@ ggplot(all_data, aes(x = TMAX_avg, y = total_no_mos, color = pos_mos_no)) +
   geom_point()
 
 #wind speed
-ggplot(all_data, aes(x = WDMV, y = total_no_mos, color = pos_mos_no)) +
+ggplot(all_data, aes(x = max_wind, y = total_no_mos, color = pos_mos_no)) +
   geom_point()
 
 #soil temp
