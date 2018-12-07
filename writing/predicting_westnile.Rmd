@@ -254,7 +254,7 @@ pos_2016 <- full_join(positive_mosquito, all_data) %>%
 ggplot(pos_2016, aes(x = week, y = precip_mean)) +
   geom_point() +
   geom_smooth() +
-  labs(x = "Week of 2016", y = "Precipitation in inches??") +
+  labs(x = "Week of 2016", y = "Precipitation in inches") +
   ggtitle("Precipitation by Week in 2016")
 
 new_mos<- mosquito_data %>%
