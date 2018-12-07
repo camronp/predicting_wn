@@ -247,7 +247,6 @@ Compare the preciptation by week and positive mosquitos by week on top of each o
 pos_2016 <- full_join(positive_mosquito, all_data) %>%
   filter(year == 2016)
 
-library(ggplot2)
 
 # 2D hexbin plots
 
