@@ -11,7 +11,7 @@ knitr::opts_chunk$set(echo = TRUE)
 
 
 
-```{r}
+```{r, message = FALSE, warning = FALSE, echo = FALSE}
 library(readr)
 library(dplyr)
 library(lubridate)
@@ -37,7 +37,6 @@ mosquito_data <- mosquito_data_original %>%
   mutate(`TEST DATE` = mdy_hms(`TEST DATE`)) %>%
   rename_all(.funs = str_to_lower) %>%
   rename(year = `season year`, test_id = `test id`, test_date = `test date`,
-
          number_mosquitos = `number of mosquitoes`)
 
 # find the total # mosquitoes collected each week
@@ -65,7 +64,7 @@ head(final_mosquito)
 ```
 
 Read in and clean storm data
-```{r storm data}
+```{r storm data, message = FALSE}
 storms_2016 <- read_csv("../data/StormEvents_details-ftp_v1.0_d2016_c20180718.csv") 
 
 storms_2017 <- read_csv("../data/StormEvents_details-ftp_v1.0_d2017_c20181017.csv")
