@@ -2,7 +2,9 @@
 title: "Predicting Westnile"
 author: "Camron Pearce, Amy Fox, Alyssa Melvin, Kayla Williams"
 date: "November 7, 2018"
-output: html_document
+output:
+  pdf_document: default
+  html_document: default
 ---
 
 ```{r setup, include=FALSE}
@@ -203,10 +205,6 @@ weather_data <-
   filter(row_number() == 1) %>% 
   ungroup()
   
-  
-
-weather_data[, c("week", "year", "TMIN_avg", "TMAX_avg", "avg_temp", "WDMV")]
-  
 head(weather_data)
 
 precip_data <- read_csv("../data/precip.csv") %>% 
@@ -236,6 +234,10 @@ all_data <- left_join(final_mosquito, storm_events, by = c("year", "week")) %>%
             left_join(precip_data, by =  c("year", "week"))
 
 head(all_data)
+
+all_data_wo_storm <- left_join(final_mosquito, all_soil_temps, by = c("year", "week")) %>%
+            left_join(weather_data, by =  c("year", "week")) %>% 
+            left_join(precip_data, by =  c("year", "week"))
 
 ```
 
@@ -348,7 +350,6 @@ data_wo_char %>%
     correlate() %>% 
   network_plot(min_cor = .2)
 
-findCorrelation(all_data, cutoff = .75)
 
 
 data_wo_char %>% 
