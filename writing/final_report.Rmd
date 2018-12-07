@@ -24,7 +24,8 @@ library(knitr)
 library(broom)
 ```
 
-Our GitHub can be accessible [here](https://github.com/camronp/predicting_wn).
+
+*Our GitHub is accessible [here](https://github.com/camronp/predicting_wn).*
 
 #Aim
 
@@ -64,8 +65,9 @@ kable(head(final_mosquito), align = "l")
 
 When we were researching things that may influence WNV infection of mosquitos, we found a paper that explained soil temperature, precipitation, wind speed, and relative humidity have some sort of association with WNV infected mosquitos in Northern Greece. With that in mind, we chose NOAA weather data. We had quite a few columns which had mostly NAs so we wanted to filter it down to just precipitation for this particular project. We grouped the data by year and week and found the mean precipitation for that week and year. 
 
-```{r weather_data, echo = FALSE, message = FALSE}
-weather_data <- read_csv("../data/weather_data.csv") %>% 
+```{r weather_data, echo = FALSE, message = FALSE, warning = FALSE}
+weather_data <- 
+  read_csv("../data/weather_data.csv") %>% 
   rename(station = "STATION",
          name = "NAME",
          date = "DATE") %>% 
@@ -76,9 +78,11 @@ weather_data <- read_csv("../data/weather_data.csv") %>%
   mutate(TMAX_avg = mean(TMAX, na.rm = TRUE)) %>% 
   mutate(TMIN_avg = mean(TMIN, na.rm = TRUE)) %>% 
   mutate(avg_temp = (TMIN_avg + TMAX_avg)/2) %>% 
+  mutate(max_wind = max(WDMV, na.rm = TRUE )) %>% 
   select(-TOBS, -date, -SN32, -SN52, -SX32, -SX52, -station, -name,
-         -TMAX, -TMIN) %>% 
-  arrange(year, week) %>% 
+         -TMAX, -TMIN, -WDMV) %>% 
+  arrange(year, week) %>%
+  filter(row_number() == 1) %>% 
   ungroup()
 
 precip_data <- read_csv("../data/precip.csv") %>% 
@@ -165,7 +169,17 @@ all_data <- left_join(final_mosquito, storm_events, by = c("year", "week")) %>%
 
 #How we tackled the problem
 
-First we had to find the data we wanted to use from various sources. We then had to clean the data and modify it to a point where we could use it for what we had planned to do. 
+First we had to find the data we wanted to use from various sources. We then had to clean the data and modify it to a point where we could use it for what we had planned to do. We then wanted to examine the relationships among the variables. For this, we used a correlation plot. 
+
+```{r correlation_plot, echo = FALSE}
+data_wo_char <- all_data %>%
+  select(-event_type, -year, -TMIN_avg, -TMAX_avg, -max_wind)
+
+correlation <- cor(data_wo_char)
+
+corrplot::corrplot(correlation, method = "number")
+```
+
 
 
 #Discovery of Interesting Things	
