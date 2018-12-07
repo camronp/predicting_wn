@@ -189,8 +189,6 @@ equation_test <- formula(prop_pos_mos ~ fp(precip_mean) + fp(avg_soil_t_4) +
 
 mfp_testing <- mfp(equation_test, data = all_data, select = 0.05)
 
-summary(mfp_testing)
-
 mos_mod <- lm(mfp_testing$formula, all_data)
 
 summary(mos_mod)

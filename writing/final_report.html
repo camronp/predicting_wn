@@ -293,32 +293,7 @@ $(document).ready(function () {
 
 mfp_testing &lt;- mfp(equation_test, data = all_data, select = 0.05)
 
-summary(mfp_testing)</code></pre>
-<pre><code>## 
-## Call:
-## glm(formula = prop_pos_mos ~ I((week/10)^3) + I((week/10)^3 * 
-##     log((week/10))), data = all_data)
-## 
-## Deviance Residuals: 
-##       Min         1Q     Median         3Q        Max  
-## -0.257351  -0.071251   0.009623   0.072975   0.293455  
-## 
-## Coefficients:
-##                                 Estimate Std. Error t value Pr(&gt;|t|)    
-## (Intercept)                     -1.70826    0.19209  -8.893 1.99e-12 ***
-## I((week/10)^3)                   0.29121    0.02824  10.311 9.85e-15 ***
-## I((week/10)^3 * log((week/10))) -0.19352    0.01883 -10.276 1.12e-14 ***
-## ---
-## Signif. codes:  0 '***' 0.001 '**' 0.01 '*' 0.05 '.' 0.1 ' ' 1
-## 
-## (Dispersion parameter for gaussian family taken to be 0.0178462)
-## 
-##     Null deviance: 2.9383  on 60  degrees of freedom
-## Residual deviance: 1.0351  on 58  degrees of freedom
-## AIC: -67.55
-## 
-## Number of Fisher Scoring iterations: 2</code></pre>
-<pre class="r"><code>mos_mod &lt;- lm(mfp_testing$formula, all_data)
+mos_mod &lt;- lm(mfp_testing$formula, all_data)
 
 summary(mos_mod)</code></pre>
 <pre><code>## 
