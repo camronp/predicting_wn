@@ -13,7 +13,7 @@ knitr::opts_chunk$set(echo = TRUE)
 
 
 
-```{r}
+```{r, message = FALSE, warning = FALSE, echo = FALSE}
 library(readr)
 library(dplyr)
 library(lubridate)
@@ -39,7 +39,6 @@ mosquito_data <- mosquito_data_original %>%
   mutate(`TEST DATE` = mdy_hms(`TEST DATE`)) %>%
   rename_all(.funs = str_to_lower) %>%
   rename(year = `season year`, test_id = `test id`, test_date = `test date`,
-
          number_mosquitos = `number of mosquitoes`)
 
 # find the total # mosquitoes collected each week
@@ -67,7 +66,7 @@ head(final_mosquito)
 ```
 
 Read in and clean storm data
-```{r storm data}
+```{r storm data, message = FALSE}
 storms_2016 <- read_csv("../data/StormEvents_details-ftp_v1.0_d2016_c20180718.csv") 
 
 storms_2017 <- read_csv("../data/StormEvents_details-ftp_v1.0_d2017_c20181017.csv")
@@ -250,7 +249,6 @@ Compare the preciptation by week and positive mosquitos by week on top of each o
 pos_2016 <- full_join(positive_mosquito, all_data) %>%
   filter(year == 2016)
 
-library(ggplot2)
 
 # 2D hexbin plots
 
@@ -258,7 +256,7 @@ library(ggplot2)
 ggplot(pos_2016, aes(x = week, y = precip_mean)) +
   geom_point() +
   geom_smooth() +
-  labs(x = "Week of 2016", y = "Precipitation in inches??") +
+  labs(x = "Week of 2016", y = "Precipitation in inches") +
   ggtitle("Precipitation by Week in 2016")
 
 new_mos<- mosquito_data %>%
