@@ -1,8 +1,10 @@
 ---
-title: "predicting_westnile"
+title: "Predicting Westnile"
 author: "Camron Pearce, Amy Fox, Alyssa Melvin, Kayla Williams"
 date: "November 7, 2018"
-output: html_document
+output:
+  pdf_document: default
+  html_document: default
 ---
 
 ```{r setup, include=FALSE}
@@ -11,7 +13,7 @@ knitr::opts_chunk$set(echo = TRUE)
 
 
 
-```{r}
+```{r, message = FALSE, warning = FALSE, echo = FALSE}
 library(readr)
 library(dplyr)
 library(lubridate)
@@ -37,7 +39,6 @@ mosquito_data <- mosquito_data_original %>%
   mutate(`TEST DATE` = mdy_hms(`TEST DATE`)) %>%
   rename_all(.funs = str_to_lower) %>%
   rename(year = `season year`, test_id = `test id`, test_date = `test date`,
-
          number_mosquitos = `number of mosquitoes`)
 
 # find the total # mosquitoes collected each week
@@ -65,7 +66,7 @@ head(final_mosquito)
 ```
 
 Read in and clean storm data
-```{r storm data}
+```{r storm data, message = FALSE}
 storms_2016 <- read_csv("../data/StormEvents_details-ftp_v1.0_d2016_c20180718.csv") 
 
 storms_2017 <- read_csv("../data/StormEvents_details-ftp_v1.0_d2017_c20181017.csv")
@@ -184,7 +185,8 @@ tail(all_soil_temps)
 Read in weather data and clean up
 ```{r weather}
 
-weather_data <- read_csv("../data/weather_data.csv") %>% 
+weather_data <- 
+  read_csv("../data/weather_data.csv") %>% 
   rename(station = "STATION",
          name = "NAME",
          date = "DATE") %>% 
@@ -195,12 +197,12 @@ weather_data <- read_csv("../data/weather_data.csv") %>%
   mutate(TMAX_avg = mean(TMAX, na.rm = TRUE)) %>% 
   mutate(TMIN_avg = mean(TMIN, na.rm = TRUE)) %>% 
   mutate(avg_temp = (TMIN_avg + TMAX_avg)/2) %>% 
+  mutate(max_wind = max(WDMV, na.rm = TRUE )) %>% 
   select(-TOBS, -date, -SN32, -SN52, -SX32, -SX52, -station, -name,
-         -TMAX, -TMIN) %>% 
-  arrange(year, week) %>% 
+         -TMAX, -TMIN, -WDMV) %>% 
+  arrange(year, week) %>%
+  filter(row_number() == 1) %>% 
   ungroup()
-
-weather_data[, c("week", "year", "TMIN_avg", "TMAX_avg", "avg_temp", "WDMV")]
   
 head(weather_data)
 
@@ -232,6 +234,10 @@ all_data <- left_join(final_mosquito, storm_events, by = c("year", "week")) %>%
 
 head(all_data)
 
+all_data_wo_storm <- left_join(final_mosquito, all_soil_temps, by = c("year", "week")) %>%
+            left_join(weather_data, by =  c("year", "week")) %>% 
+            left_join(precip_data, by =  c("year", "week"))
+
 ```
 
 Plot positive mosquito and precipitation
@@ -243,7 +249,6 @@ Compare the preciptation by week and positive mosquitos by week on top of each o
 pos_2016 <- full_join(positive_mosquito, all_data) %>%
   filter(year == 2016)
 
-library(ggplot2)
 
 # 2D hexbin plots
 
@@ -251,7 +256,7 @@ library(ggplot2)
 ggplot(pos_2016, aes(x = week, y = precip_mean)) +
   geom_point() +
   geom_smooth() +
-  labs(x = "Week of 2016", y = "Precipitation in inches??") +
+  labs(x = "Week of 2016", y = "Precipitation in inches") +
   ggtitle("Precipitation by Week in 2016")
 
 new_mos<- mosquito_data %>%
@@ -291,7 +296,7 @@ mos_mod <- lm(mfp_testing$formula, all_data)
 summary(mos_mod)
 
 # test prediction model
-predict.lm(mos_mod, data_frame(precip_mean = 0.078, avg_soil_t_4 = 72.1, avg_soil_t_2 = 74.7, week = 34))
+predict.lm(mos_mod, data_frame(precip_mean = 0.078, avg_soil_t_4 = 72.1, avg_soil_t_2 = 74.7, week = 34, avg_temp = 75))
 
 #week 34 2017:  72.1 t4, 74.7 t2, 0.078 precip --> actual propotion = 0.52, 
 ```
@@ -357,7 +362,7 @@ Looks at different types of correlograms to visualize data
 
 # Remove columns with character values
 data_wo_char <- all_data %>%
-  select(-event_type, -year, -TMIN_avg, -TMAX_avg, -WDMV)
+  select(-event_type, -year, -TMIN_avg, -TMAX_avg, -max_wind)
 
 correlation <- cor(data_wo_char)
 
@@ -378,7 +383,6 @@ data_wo_char %>%
     correlate() %>% 
   network_plot(min_cor = .2)
 
-findCorrelation(all_data, cutoff = .75)
 
 
 data_wo_char %>% 
@@ -407,7 +411,7 @@ ggplot(all_data, aes(x = TMAX_avg, y = total_no_mos, color = pos_mos_no)) +
   geom_point()
 
 #wind speed
-ggplot(all_data, aes(x = WDMV, y = total_no_mos, color = pos_mos_no)) +
+ggplot(all_data, aes(x = max_wind, y = total_no_mos, color = pos_mos_no)) +
   geom_point()
 
 #soil temp
