@@ -296,6 +296,7 @@ predict.lm(mos_mod, data_frame(precip_mean = 0.078, avg_soil_t_4 = 72.1, avg_soi
 #week 34 2017:  72.1 t4, 74.7 t2, 0.078 precip --> actual propotion = 0.52, 
 ```
 First attempt at regression tree - could also try random forest
+*Pruning regressoin tree
 ```{r}
 
 library(rpart)
@@ -307,11 +308,45 @@ tree_fit <- rpart(prop_pos_mos ~ precip_mean + avg_soil_t_4 + avg_soil_t_2 + wee
 printcp(tree_fit) # display the results 
 plotcp(tree_fit) # visualize cross-validation results 
 summary(tree_fit) # detailed summary of splits
+importance(tree_fit)
 
 # plot tree 
 plot(tree_fit, uniform=TRUE, 
   	main="Classification Tree for All data")
 text(tree_fit, cex=.8)
+
+post(tree_fit, file = "./data/try1.ps", title = "try1")
+
+post(fit, file = "c:/tree.ps", 
+  	title = "Classification Tree for Kyphosis")
+```
+Try Random forest
+
+Plot variable importance 
+```{r}
+# Random Forest prediction of Kyphosis data
+library(randomForest)
+
+forest_fit <- randomForest(prop_pos_mos ~ precip_mean + avg_soil_t_4 + avg_soil_t_2 + week + avg_temp,
+  	data = all_data)
+
+print(forest_fit) # view results 
+
+importance(forest_fit) # importance of each predictor
+^change this into dataframe, change first column to column
+
+class(varImpPlot(forest_fit,main="Important variables Random Forest"))
+
+
+ggplot(forest_fit, aes(x=reorder(w,v), y=v,fill=v))+ 
+   geom_bar(stat="identity", position="dodge")+ coord_flip()+
+   ylab("Variable Importance")+
+   xlab("")+
+   ggtitle("Information Value Summary")+
+   guides(fill=F)+
+   scale_fill_gradient(low="red", high="blue")
+
+colnames(forest_fit)
 ```
 
 
