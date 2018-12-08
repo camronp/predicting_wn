@@ -180,10 +180,20 @@ data_wo_char <- all_data %>%
 
 correlation <- cor(data_wo_char)
 
-corrplot::corrplot(correlation, method = "number")
+corrplot::corrplot(correlation, method = "number", "upper")
 ```
 
-To build a prediction model for proportion of positive mosquitos, we looked at Nick Good's example he used in class for his running data and attempted something similar. When we tested the prediction model for week 34 in 2017:  72.1 t4, 74.7 t2, 0.078 precip - the actual proportion should be 0.52. The proportion our model output is below. 
+To build a prediction model for proportion of positive mosquitos, we tested three type of models: a linear prediction model, a regression tree, and random forest. For the models, we split the data into 2 sections: the first would contains the data collected from 2016 and 2017 to train the datasets, and the second contains the 2018 data to test the accuracy of the models.
+
+```{r}
+train_all_data <- all_data %>%
+  filter(year %in% c(2016, 2017))
+
+test_all_data <- all_data %>%
+  filter(year == 2018)
+```
+
+For the linear prediction model we looked at Nick Good's example he used in class for his running data and attempted something similar. When we tested the prediction model for week 34 in 2017:  72.1 t4, 74.7 t2, 0.078 precip - the actual proportion should be 0.52. The proportion our model output is below. The mean average error for the proportion of positive mosquitoes for the model was also calculated to be `r mae(model = linear_fit, data = test_all_data)`.
 
 ```{r prediction_model}
 equation_test <- formula(prop_pos_mos ~ fp(precip_mean) + fp(avg_soil_t_4) + 
@@ -198,6 +208,31 @@ summary(mos_mod)
 # test prediction model
 predict.lm(mos_mod, data_frame(precip_mean = 0.078, avg_soil_t_4 = 72.1, 
                                avg_soil_t_2 = 74.7, week = 34, avg_temp = 75))
+
+# get the mean average error for the linear model
+mae(model = linear_fit, data = test_all_data)
+```
+
+Decision tree learning looks at multiple observations to predict a conclusion based off of yes/no decisions about the data. For the regression tree model, the mean average error for the proportion of positive mosquitoes is be `r mae(model = tree_fit, data = test_all_data)`
+```{r}
+tree_fit <- rpart(prop_pos_mos ~ precip_mean + avg_soil_t_4 + avg_soil_t_2 + week + avg_temp,
+  	method="class", data = train_all_data)
+
+# get the mean average error for our model
+mae(model = tree_fit, data = test_all_data)
+
+# plot decision tree 
+prp(tree_fit, main="Classification Tree for Predicting Proportion of Positive Mosquitoes")	
+```
+
+Random Forestis similar to decision trees, but it is more robust in that it creates many trees (in the case of our model, 500) and uses the mean prediction of all of the trees to predict an outcome. The random forest model, the mean average error for the proportion of positive mosquitoes is be `r mae(model = forest_fit, data = test_all_data)`
+```{r}
+# build random forest prediction model
+forest_fit <- randomForest(prop_pos_mos ~ precip_mean + avg_soil_t_4 + avg_soil_t_2 + week + avg_temp,
+  	data = train_all_data, importance = TRUE)
+
+# get the mean average error for our model
+mae(model = forest_fit, data = test_all_data)
 ```
 
 

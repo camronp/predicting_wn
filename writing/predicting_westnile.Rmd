@@ -25,6 +25,9 @@ library(rnoaa)
 library(corrplot)
 library(mfp)
 library(ggplot2)
+library(modelr)
+library(rpart)
+library(randomForest)
 
 ```
 
@@ -280,79 +283,90 @@ ggplot(pos_plus_all, aes(x = no_mos, y = precip_mean)) +
 
 ```
 
+# Prediction Models
 
-Build prediction model for proportion of positive mosquitos
+Split the data into 2, one fore training the prediction models, and the other for testing 
+```{r}
+train_all_data <- all_data %>%
+  filter(year %in% c(2016, 2017))
+
+test_all_data <- all_data %>%
+  filter(year == 2018)
+```
+
+
+## Linear Model
+
+Build linear prediction model for proportion of positive mosquitos
 
 ```{r}
 
+# input the variables we believe to be predictive
 equation_test <- formula(prop_pos_mos ~ fp(precip_mean) + fp(avg_soil_t_4) + fp(avg_soil_t_2) + fp(week) +fp(avg_temp))
 
-mfp_testing <- mfp(equation_test, data = all_data, select = 0.05)
+# multivariate fractional polynomials will determine to what power each variable should be multiplied
+mfp_testing <- mfp(equation_test, data = train_all_data, select = 0.05)
 
-summary(mfp_testing)
+# perform linear model with the formula developed from the mfp_testing
+linear_fit <- lm(mfp_testing$formula, train_all_data)
 
-mos_mod <- lm(mfp_testing$formula, all_data)
-
-summary(mos_mod)
+# summary of linear fit with the r^2 value
+summary(linear_fit)
 
 # test prediction model
-predict.lm(mos_mod, data_frame(precip_mean = 0.078, avg_soil_t_4 = 72.1, avg_soil_t_2 = 74.7, week = 34, avg_temp = 75))
+predict.lm(linear_fit, data_frame(precip_mean = 0.078, avg_soil_t_4 = 72.1, avg_soil_t_2 = 74.7, week = 34, avg_temp = 75))
 
-#week 34 2017:  72.1 t4, 74.7 t2, 0.078 precip --> actual propotion = 0.52, 
+# get the mean average error fo the linear model
+mae(model = linear_fit, data = test_all_data)
 ```
-First attempt at regression tree - could also try random forest
-*Pruning regressoin tree
+
+## Regression Tree MOdel
+
 ```{r}
 
-library(rpart)
-
-# grow tree 
+# build regression tree model
 tree_fit <- rpart(prop_pos_mos ~ precip_mean + avg_soil_t_4 + avg_soil_t_2 + week + avg_temp,
-  	method="class", data = all_data)
+  	method="class", data = train_all_data)
 
 printcp(tree_fit) # display the results 
-plotcp(tree_fit) # visualize cross-validation results 
 summary(tree_fit) # detailed summary of splits
-importance(tree_fit)
+#importance(tree_fit)
 
-# plot tree 
-plot(tree_fit, uniform=TRUE, 
-  	main="Classification Tree for All data")
-text(tree_fit, cex=.8)
+# get the mean average error for our model
+mae(model = tree_fit, data = test_all_data)
 
-post(tree_fit, file = "./data/try1.ps", title = "try1")
+# plot decision tree 
+prp(tree_fit, main="Classification Tree for Predicting Proportion of Positive Mosquitoes")	
 
-post(fit, file = "c:/tree.ps", 
-  	title = "Classification Tree for Kyphosis")
+
 ```
-Try Random forest
+## Random Forest Model
 
 Plot variable importance 
 ```{r}
-# Random Forest prediction of Kyphosis data
-library(randomForest)
 
+# build random forest prediction model
 forest_fit <- randomForest(prop_pos_mos ~ precip_mean + avg_soil_t_4 + avg_soil_t_2 + week + avg_temp,
-  	data = all_data)
+  	data = train_all_data, importance = TRUE)
+
+# get the mean average error for our model
+mae(model = forest_fit, data = test_all_data)
 
 print(forest_fit) # view results 
 
-importance(forest_fit) # importance of each predictor
-^change this into dataframe, change first column to column
+varImpPlot(forest_fit,main="Important variables Random Forest")
 
-class(varImpPlot(forest_fit,main="Important variables Random Forest"))
+impor_var <- as.data.frame(forest_fit$importance) %>%
+  add_rownames("variables") 
 
+ggplot(impor_var, aes(x = reorder(variables, -IncNodePurity), y = IncNodePurity, fill = variables)) +
+  geom_bar(stat = "identity") +
+  ylab("Node Purity")+
+  xlab("Variables") +
+  ggtitle("Importance of Random Forest Variables")
 
-ggplot(forest_fit, aes(x=reorder(w,v), y=v,fill=v))+ 
-   geom_bar(stat="identity", position="dodge")+ coord_flip()+
-   ylab("Variable Importance")+
-   xlab("")+
-   ggtitle("Information Value Summary")+
-   guides(fill=F)+
-   scale_fill_gradient(low="red", high="blue")
-
-colnames(forest_fit)
 ```
+
 
 
 Correlation matrix using correlogram 
@@ -365,8 +379,6 @@ data_wo_char <- all_data %>%
   select(-event_type, -year, -TMIN_avg, -TMAX_avg, -max_wind)
 
 correlation <- cor(data_wo_char)
-
-corrplot::corrplot(correlation, method = "number")
 
 corrplot.mixed(correlation)
 
