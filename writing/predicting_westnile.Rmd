@@ -310,6 +310,8 @@ mfp_testing <- mfp(equation_test, data = train_all_data, select = 0.05)
 # perform linear model with the formula developed from the mfp_testing
 linear_fit <- lm(mfp_testing$formula, train_all_data)
 
+mfp_testing$formula
+
 # summary of linear fit with the r^2 value
 summary(linear_fit)
 
@@ -365,6 +367,33 @@ ggplot(impor_var, aes(x = reorder(variables, -IncNodePurity), y = IncNodePurity,
   xlab("Variables") +
   ggtitle("Importance of Random Forest Variables")
 
+```
+
+What does the mean average error look like if we did not split the data into training and testing data to begin
+```{r}
+
+# multivariate fractional polynomials will determine to what power each variable should be multiplied
+mfp_testing_all <- mfp(equation_test, data = all_data, select = 0.05)
+
+# perform linear model with the formula developed from the mfp_testing
+linear_fit_all <- lm(mfp_testing_all$formula, all_data)
+
+# get the mean average error fo the linear model
+mae(model = linear_fit_all, data = all_data)
+
+# build regression tree model
+tree_fit_all <- rpart(prop_pos_mos ~ precip_mean + avg_soil_t_4 + avg_soil_t_2 + week + avg_temp,
+  	method="class", data = all_data)
+
+# get the mean average error for our model
+mae(model = tree_fit_all, data = all_data)
+
+# build random forest prediction model
+forest_fit_all <- randomForest(prop_pos_mos ~ precip_mean + avg_soil_t_4 + avg_soil_t_2 + week + avg_temp,
+  	data = all_data, importance = TRUE)
+
+# get the mean average error for our model
+mae(model = forest_fit_all, data = all_data)
 ```
 
 

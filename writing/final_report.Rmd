@@ -225,7 +225,7 @@ mae(model = tree_fit, data = test_all_data)
 prp(tree_fit, main="Classification Tree for Predicting Proportion of Positive Mosquitoes")	
 ```
 
-Random Forestis similar to decision trees, but it is more robust in that it creates many trees (in the case of our model, 500) and uses the mean prediction of all of the trees to predict an outcome. The random forest model, the mean average error for the proportion of positive mosquitoes is be `r mae(model = forest_fit, data = test_all_data)`
+Random Forest is similar to decision trees, but it is more robust in that it creates many trees (in the case of our model, 500) and uses the mean prediction of all of the trees to predict an outcome. The random forest model, the mean average error for the proportion of positive mosquitoes is be `r mae(model = forest_fit, data = test_all_data)`
 ```{r}
 # build random forest prediction model
 forest_fit <- randomForest(prop_pos_mos ~ precip_mean + avg_soil_t_4 + avg_soil_t_2 + week + avg_temp,
