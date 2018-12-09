@@ -70,6 +70,25 @@ head(final_mosquito)
   
 ```
 
+Plot proportion of positive mosquitoes
+ 
+```{r}
+
+new_mos<- mosquito_data %>%
+  group_by(week, year, result) %>%
+  summarise(no_mos = sum(number_mosquitos))
+
+pos_plus_all <- full_join(new_mos, all_data) %>%
+  filter(year == 2016)
+
+ggplot(pos_plus_all, aes(x = week, y = no_mos, fill = result)) +
+  geom_bar(stat = "identity") +
+  labs(x = "Week of 2016", y = "Number of collected mosquitoes") +
+  ggtitle("Positive West Nile Virus Mosquitoes 2016")
+
+
+```
+
 Read in and clean storm data
 ```{r storm data, message = FALSE}
 storms_2016 <- read_csv("../data/StormEvents_details-ftp_v1.0_d2016_c20180718.csv") 
@@ -98,9 +117,7 @@ storm_events <- unique(all_storm[c("year", "week", "event_type")])
 
 Add interactive feature with number of positive or negative mosquitos found
 Can use to see the locations where more positive mosquitoes are found
-```{r}
-
-pal <- colorFactor(viridis(7), final_mosquito$result)
+```{r leaflet, warning = FALSE}
 
 # find the total # mosquitoes collected each week
 mosquito_data_tot_leaf <- mosquito_data %>%
@@ -122,22 +139,21 @@ final_mosquito_leaf <- mosquito_data_tot_leaf %>%
   select(latitude, longitude, pos_mos_no, total_no_mos, prop_pos_mos)
 
 # create popup info for 
-popup_info <- paste0("<b>Proportion positive mosquitoes<b>", final_mosquito_leaf$prop_pos_mos)
+popup_info <- paste0("<b>Proportion WNV mosquitoes<b>", round(final_mosquito_leaf$prop_pos_mos, digits = 2))
 
+# create colors for map
 pal <- colorNumeric(
   palette = viridis(7),
-  domain = final_mosquito_leaf$prop_pos_mos
+  domain = final_mosquito_leaf$prop_pos_mos)
   
-  
-)
-
+# develop leaflet
 leaflet(data = final_mosquito_leaf) %>%
   addTiles() %>%
   addCircleMarkers(data = final_mosquito_leaf, radius = ~prop_pos_mos*10,
                    lng = ~longitude, lat = ~latitude, 
                    color = ~pal(prop_pos_mos),
                    group = "mosquito", popup = popup_info)  %>%
-  addLegend(pal = pal, values = ~prop_pos_mos, opacity = 0.9) 
+  addLegend(pal = pal, values = ~prop_pos_mos, opacity = 0.9, title = "proportion \n WNV mosquitoes") 
 
 
   
@@ -244,45 +260,7 @@ all_data_wo_storm <- left_join(final_mosquito, all_soil_temps, by = c("year", "w
 
 ```
 
-Plot positive mosquito and precipitation
 
-Compare the preciptation by week and positive mosquitos by week on top of each other to see similarities-- acutally try to add on top of graph
- 
-```{r}
-
-pos_2016 <- full_join(positive_mosquito, all_data) %>%
-  filter(year == 2016)
-
-
-# 2D hexbin plots
-
-
-ggplot(pos_2016, aes(x = week, y = precip_mean)) +
-  geom_point() +
-  geom_smooth() +
-  labs(x = "Week of 2016", y = "Precipitation in inches") +
-  ggtitle("Precipitation by Week in 2016")
-
-new_mos<- mosquito_data %>%
-  group_by(week, year, result) %>%
-  summarise(no_mos = sum(number_mosquitos))
-
-pos_plus_all <- full_join(new_mos, all_data) %>%
-  filter(year == 2016)
-
-ggplot(pos_plus_all, aes(x = week, y = no_mos, fill = result)) +
-  geom_bar(stat = "identity") +
-  labs(x = "Week of 2016", y = "Number of collected mosquitoes") +
-  ggtitle("Positive West Nile Virus Mosquitoes 2016")
-
-ggplot(pos_plus_all, aes(x = no_mos, y = precip_mean)) +
-  geom_point() +
-  geom_smooth() +
-  labs(x = "number collected mosquitos", y = "average precipitation") +
-  ggtitle("Not looking great on correlation")
-
-
-```
 
 # Prediction Models
 
@@ -317,7 +295,9 @@ mfp_testing$formula
 summary(linear_fit)
 
 # test prediction model
-predict.lm(linear_fit, data_frame(precip_mean = 0.078, avg_soil_t_4 = 72.1, avg_soil_t_2 = 74.7, week = 34, avg_temp = 75))
+predict.lm(linear_fit, data_frame(precip_mean = 0.078, avg_soil_t_4 = 72.1, avg_soil_t_2 = 200, week = 34, avg_temp = 75))
+
+
 
 # get the mean average error fo the linear model
 mae(model = linear_fit, data = test_all_data)
@@ -368,6 +348,8 @@ ggplot(impor_var, aes(x = reorder(variables, -IncNodePurity), y = IncNodePurity,
   ylab("Node Purity")+
   xlab("Variables") +
   ggtitle("Importance of Random Forest Variables")
+
+forest_pre <- predict(forest_fit, data_frame(precip_mean = 0.078, avg_soil_t_4 = 72.1, avg_soil_t_2 = 200, week = 34, avg_temp = 75), type = "class")
 
 ```
 
