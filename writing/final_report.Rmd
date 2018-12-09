@@ -25,6 +25,10 @@ library(ggplot2)
 library(knitr)
 library(mfp)
 library(broom)
+library(modelr)
+library(rpart)
+library(randomForest)
+library(rpart.plot)
 ```
 
 
@@ -63,7 +67,12 @@ final_mosquito <- mosquito_data_tot %>%
   mutate(prop_pos_mos = pos_mos_no / total_no_mos) %>%
   select(week, year, pos_mos_no, total_no_mos, prop_pos_mos)
 
-kable(head(final_mosquito), align = "l")
+final_mosquito_pretty <-  final_mosquito %>%
+  rename("# of WNV mosquitoes"= pos_mos_no,
+         "total # of mosquitoes" = total_no_mos,
+         "ratio of WNV mosquitoes" = prop_pos_mos)
+
+kable(head(final_mosquito_pretty), align = "l")
 ```
 
 When we were researching things that may influence WNV infection of mosquitos, we found a paper that explained soil temperature, precipitation, wind speed, and relative humidity have some sort of association with WNV infected mosquitos in Northern Greece. With that in mind, we chose NOAA weather data. We had quite a few columns which had mostly NAs so we wanted to filter it down to just precipitation for this particular project. We grouped the data by year and week and found the mean precipitation for that week and year. 
@@ -99,7 +108,10 @@ precip_data <- read_csv("../data/precip.csv") %>%
   arrange(year, week) %>% 
   ungroup()
 
-kable(head(precip_data), align = "l")
+precip_data_pretty <- precip_data %>%
+  rename("avg precipitation" = precip_mean)
+
+kable(head(precip_data_pretty), align = "l")
 ```
 
 We wanted to find soil temperature data as well. We found soil data in an area that was near Illinois, but about 20 miles away. When we spoke with professionals in the field, we were told it would be beneficial to filter our data to average soil temperature in 4 inch sod and average soil temperature in 2 inch bare soil. We also grouped this data by week and year and found the average for those weeks. 
@@ -138,7 +150,11 @@ all_soil_temps <-
             avg_soil_t_2 = mean(avg_soiltemp_2in_bare, 
                                 na.rm = TRUE))
 
-kable(head(all_soil_temps), align = "l")
+all_soil_temps_pretty <- all_soil_temps %>%
+    rename("avg 4 inch soil temp" = avg_soil_t_4,
+         "avg 2 inch soil temp" = avg_soil_t_2)
+
+kable(head(all_soil_temps_pretty), align = "l")
 ```
 
 ```{r storm_data, echo = FALSE, message = FALSE, warning = FALSE}
@@ -175,17 +191,28 @@ all_data <- left_join(final_mosquito, storm_events, by = c("year", "week")) %>%
 First we had to find the data we wanted to use from various sources. We then had to clean the data and modify it to a point where we could use it for what we had planned to do. We then wanted to examine the relationships among the variables. For this, we used a correlation plot. Our correlation plot indicates that there is a negative association between the number of positive WNV mosquitos and average soil temperature in 4 inch sod, average soil temperature in 2 inch bare soil, average temperature, and mean precipitation.  
 
 ```{r correlation_plot, echo = FALSE}
+
+# Remove columns with character values and malke pretty label names
 data_wo_char <- all_data %>%
-  select(-event_type, -year, -TMIN_avg, -TMAX_avg, -max_wind)
+  select(-event_type, -year, -TMIN_avg, -TMAX_avg, -max_wind) %>%
+  rename("# of WNV mosquitoes"= pos_mos_no,
+         "total # of mosquitoes" = total_no_mos,
+         "ratio of WNV mosquitoes" = prop_pos_mos,
+         "average 4 inch soil temp" = avg_soil_t_4,
+         "average 2 inch soil temp" = avg_soil_t_2,
+         "average temp" = avg_temp,
+         "average precipitation" = precip_mean)
 
 correlation <- cor(data_wo_char)
 
-corrplot::corrplot(correlation, method = "number", "upper")
+corrplot(correlation, method = "number", "upper", 
+         title = "Variable Correlation Plot",
+         mar=c(0,0,2,0))
 ```
 
 To build a prediction model for proportion of positive mosquitos, we tested three type of models: a linear prediction model, a regression tree, and random forest. For the models, we split the data into 2 sections: the first would contains the data collected from 2016 and 2017 to train the datasets, and the second contains the 2018 data to test the accuracy of the models.
 
-```{r}
+```{r splitting_data echo = FALSE, message = FALSE, warning = FALSE}
 train_all_data <- all_data %>%
   filter(year %in% c(2016, 2017))
 
@@ -193,28 +220,25 @@ test_all_data <- all_data %>%
   filter(year == 2018)
 ```
 
-For the linear prediction model we looked at Nick Good's example he used in class for his running data and attempted something similar. When we tested the prediction model for week 34 in 2017:  72.1 t4, 74.7 t2, 0.078 precip - the actual proportion should be 0.52. The proportion our model output is below. The mean average error for the proportion of positive mosquitoes for the model was also calculated to be `r mae(model = linear_fit, data = test_all_data)`.
+For the linear prediction model we looked at Nick Good's example he used in class for his running data and attempted something similar. When we tested the prediction model for week 34 in 2017:  72.1 t4, 74.7 t2, 0.078 precip - the actual proportion should be 0.52. The proportion our model output is below. 
 
-```{r prediction_model}
-equation_test <- formula(prop_pos_mos ~ fp(precip_mean) + fp(avg_soil_t_4) + 
-                           fp(avg_soil_t_2) + fp(week) +fp(avg_temp))
+```{r prediction_model echo = FALSE, message = FALSE, warning = FALSE}
+# input the variables we believe to be predictive
+equation_test <- formula(prop_pos_mos ~ fp(week) +fp(avg_temp) + fp(precip_mean) + fp(avg_soil_t_4) + fp(avg_soil_t_2) )
 
-mfp_testing <- mfp(equation_test, data = all_data, select = 0.05)
+# multivariate fractional polynomials will determine to what power each variable should be multiplied
+mfp_testing <- mfp(equation_test, data = train_all_data, select = 0.05)
 
-mos_mod <- lm(mfp_testing$formula, all_data)
+# perform linear model with the formula developed from the mfp_testing
+linear_fit <- lm(mfp_testing$formula, train_all_data)
 
-summary(mos_mod)
-
-# test prediction model
-predict.lm(mos_mod, data_frame(precip_mean = 0.078, avg_soil_t_4 = 72.1, 
-                               avg_soil_t_2 = 74.7, week = 34, avg_temp = 75))
-
-# get the mean average error for the linear model
+# get the mean average error fo the linear model
 mae(model = linear_fit, data = test_all_data)
 ```
+The mean average error for the proportion of positive mosquitoes for the linear model was also calculated to be `r mae(model = linear_fit, data = test_all_data)`.  
 
-Decision tree learning looks at multiple observations to predict a conclusion based off of yes/no decisions about the data. For the regression tree model, the mean average error for the proportion of positive mosquitoes is be `r mae(model = tree_fit, data = test_all_data)`
-```{r}
+Decision tree learning looks at multiple observations to predict a conclusion based off of yes/no decisions about the data. 
+```{r regression_tree echo = FALSE, message = FALSE, warning = FALSE}
 tree_fit <- rpart(prop_pos_mos ~ precip_mean + avg_soil_t_4 + avg_soil_t_2 + week + avg_temp,
   	method="class", data = train_all_data)
 
@@ -224,9 +248,10 @@ mae(model = tree_fit, data = test_all_data)
 # plot decision tree 
 prp(tree_fit, main="Classification Tree for Predicting Proportion of Positive Mosquitoes")	
 ```
+For the regression tree model, the mean average error for the proportion of positive mosquitoes is be `r mae(model = tree_fit, data = test_all_data)`  
 
-Random Forest is similar to decision trees, but it is more robust in that it creates many trees (in the case of our model, 500) and uses the mean prediction of all of the trees to predict an outcome. The random forest model, the mean average error for the proportion of positive mosquitoes is be `r mae(model = forest_fit, data = test_all_data)`
-```{r}
+Random Forest is similar to decision trees, but it is more robust in that it creates many trees (in the case of our model, 500) and uses the mean prediction of all of the trees to predict an outcome. 
+```{r random_forest echo = FALSE, message = FALSE, warning = FALSE}
 # build random forest prediction model
 forest_fit <- randomForest(prop_pos_mos ~ precip_mean + avg_soil_t_4 + avg_soil_t_2 + week + avg_temp,
   	data = train_all_data, importance = TRUE)
@@ -234,7 +259,7 @@ forest_fit <- randomForest(prop_pos_mos ~ precip_mean + avg_soil_t_4 + avg_soil_
 # get the mean average error for our model
 mae(model = forest_fit, data = test_all_data)
 ```
-
+The random forest model, the mean average error for the proportion of positive mosquitoes is be `r mae(model = forest_fit, data = test_all_data)`
 
 # Discovery of Interesting Things	
 
