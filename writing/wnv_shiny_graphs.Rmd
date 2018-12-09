@@ -17,8 +17,8 @@ library(dplyr)
 library(readr)
 
 all_data_no_storm <- 
-  read.csv("data/all_data_no_storm.csv", sep = ",") %>% 
-  select(-X)
+  read_csv("https://raw.githubusercontent.com/camronp/predicting_wn/master/data/all_data_no_storm") %>% 
+  select(-X1)
 ```
 
 Inputs {.sidebar}
@@ -72,7 +72,7 @@ Outputs
 
 ```{r}
 dataset <- reactive({
-  all_data_wo_storm %>% 
+  all_data_no_storm %>% 
   filter(week < input$weekmin) %>%    
   filter(year == as.numeric(input$checkyear))
 })
