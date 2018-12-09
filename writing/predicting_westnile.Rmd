@@ -298,7 +298,7 @@ test_all_data <- all_data %>%
 
 ## Linear Model
 
-Build linear prediction model for proportion of positive mosquitos
+Build multivariable fractional polynomial prediction model for proportion of positive mosquitos
 
 ```{r}
 

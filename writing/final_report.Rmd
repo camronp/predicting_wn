@@ -258,7 +258,9 @@ The random forest model, the mean average error for the proportion of positive m
 
 # Discovery of Interesting Things	
 
-There was a large number of positive WNV tested mosquitos the 30th week of 2016. The dates for this time were July 25th through July 31st. The precipitation mean during that time was 0.467 inches. There is a negative association between the average soil temperatures (in both 2 inch bare soil and in 4 inch sod) and precipitation. 
+There was a large number of positive WNV tested mosquitos the 30th week of 2016. The dates for this time were July 25th through July 31st. The precipitation mean during that time was 0.467 inches. There is a negative association between the average soil temperatures (in both 2 inch bare soil and in 4 inch sod) and precipitation.   
+
+For the prediction models it was also interesting that each of the models chose different variables that they deemed important in predicting the proportion of positive mosquitoes.
 
 # How project fits into West Nile research
 
