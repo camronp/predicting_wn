@@ -67,7 +67,12 @@ final_mosquito <- mosquito_data_tot %>%
   mutate(prop_pos_mos = pos_mos_no / total_no_mos) %>%
   select(week, year, pos_mos_no, total_no_mos, prop_pos_mos)
 
-kable(head(final_mosquito), align = "l")
+final_mosquito_pretty <-  final_mosquito %>%
+  rename("# of WNV mosquitoes"= pos_mos_no,
+         "total # of mosquitoes" = total_no_mos,
+         "ratio of WNV mosquitoes" = prop_pos_mos)
+
+kable(head(final_mosquito_pretty), align = "l")
 ```
 
 When we were researching things that may influence WNV infection of mosquitos, we found a paper that explained soil temperature, precipitation, wind speed, and relative humidity have some sort of association with WNV infected mosquitos in Northern Greece. With that in mind, we chose NOAA weather data. We had quite a few columns which had mostly NAs so we wanted to filter it down to just precipitation for this particular project. We grouped the data by year and week and found the mean precipitation for that week and year. 
@@ -103,7 +108,10 @@ precip_data <- read_csv("../data/precip.csv") %>%
   arrange(year, week) %>% 
   ungroup()
 
-kable(head(precip_data), align = "l")
+precip_data_pretty <- precip_data %>%
+  rename("avg precipitation" = precip_mean)
+
+kable(head(precip_data_pretty), align = "l")
 ```
 
 We wanted to find soil temperature data as well. We found soil data in an area that was near Illinois, but about 20 miles away. When we spoke with professionals in the field, we were told it would be beneficial to filter our data to average soil temperature in 4 inch sod and average soil temperature in 2 inch bare soil. We also grouped this data by week and year and found the average for those weeks. 
@@ -142,7 +150,11 @@ all_soil_temps <-
             avg_soil_t_2 = mean(avg_soiltemp_2in_bare, 
                                 na.rm = TRUE))
 
-kable(head(all_soil_temps), align = "l")
+all_soil_temps_pretty <- all_soil_temps %>%
+    rename("avg 4 inch soil temp" = avg_soil_t_4,
+         "avg 2 inch soil temp" = avg_soil_t_2)
+
+kable(head(all_soil_temps_pretty), align = "l")
 ```
 
 ```{r storm_data, echo = FALSE, message = FALSE, warning = FALSE}
