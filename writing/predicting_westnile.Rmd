@@ -402,18 +402,24 @@ mae(model = forest_fit_all, data = all_data)
 Correlation matrix using correlogram 
 Looks at different types of correlograms to visualize data
 
-```{r}
+```{r fig.width =7, fig.height = 7}
 
-# Remove columns with character values
+# Remove columns with character values and malke pretty label names
 data_wo_char <- all_data %>%
-  select(-event_type, -year, -TMIN_avg, -TMAX_avg, -max_wind)
+  select(-event_type, -year, -TMIN_avg, -TMAX_avg, -max_wind) %>%
+  rename("# of WNV mosquitoes"= pos_mos_no,
+         "total # of mosquitoes" = total_no_mos,
+         "ratio of WNV mosquitoes" = prop_pos_mos,
+         "average 4 inch soil temp" = avg_soil_t_4,
+         "average 2 inch soil temp" = avg_soil_t_2,
+         "average temp" = avg_temp,
+         "average precipitation" = precip_mean)
 
 correlation <- cor(data_wo_char)
 
-corrplot.mixed(correlation)
-
-corrplot(correlation, method = "number", "upper")
-
+corrplot(correlation, method = "number", "upper", 
+         title = "Variable Correlation Plot",
+         mar=c(0,0,2,0))
 
 ```
 

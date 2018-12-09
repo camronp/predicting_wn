@@ -179,12 +179,23 @@ all_data <- left_join(final_mosquito, storm_events, by = c("year", "week")) %>%
 First we had to find the data we wanted to use from various sources. We then had to clean the data and modify it to a point where we could use it for what we had planned to do. We then wanted to examine the relationships among the variables. For this, we used a correlation plot. Our correlation plot indicates that there is a negative association between the number of positive WNV mosquitos and average soil temperature in 4 inch sod, average soil temperature in 2 inch bare soil, average temperature, and mean precipitation.  
 
 ```{r correlation_plot, echo = FALSE}
+
+# Remove columns with character values and malke pretty label names
 data_wo_char <- all_data %>%
-  select(-event_type, -year, -TMIN_avg, -TMAX_avg, -max_wind)
+  select(-event_type, -year, -TMIN_avg, -TMAX_avg, -max_wind) %>%
+  rename("# of WNV mosquitoes"= pos_mos_no,
+         "total # of mosquitoes" = total_no_mos,
+         "ratio of WNV mosquitoes" = prop_pos_mos,
+         "average 4 inch soil temp" = avg_soil_t_4,
+         "average 2 inch soil temp" = avg_soil_t_2,
+         "average temp" = avg_temp,
+         "average precipitation" = precip_mean)
 
 correlation <- cor(data_wo_char)
 
-corrplot::corrplot(correlation, method = "number", "upper")
+corrplot(correlation, method = "number", "upper", 
+         title = "Variable Correlation Plot",
+         mar=c(0,0,2,0))
 ```
 
 To build a prediction model for proportion of positive mosquitos, we tested three type of models: a linear prediction model, a regression tree, and random forest. For the models, we split the data into 2 sections: the first would contains the data collected from 2016 and 2017 to train the datasets, and the second contains the 2018 data to test the accuracy of the models.
