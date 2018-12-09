@@ -28,6 +28,7 @@ library(ggplot2)
 library(modelr)
 library(rpart)
 library(randomForest)
+library(rpart.plot)
 
 ```
 
@@ -98,7 +99,7 @@ Add interactive feature with number of positive or negative mosquitos found
 Can use to see the locations where more positive mosquitoes are found
 ```{r}
 
-pal <- colorFactor(viridis(2), final_mosquito$result)
+pal <- colorFactor(viridis(7), final_mosquito$result)
 
 # find the total # mosquitoes collected each week
 mosquito_data_tot_leaf <- mosquito_data %>%
@@ -119,11 +120,11 @@ final_mosquito_leaf <- mosquito_data_tot_leaf %>%
   mutate(prop_pos_mos = pos_mos_no / total_no_mos) %>%
   select(latitude, longitude, pos_mos_no, total_no_mos, prop_pos_mos)
 
-
+# create popup info for 
 popup_info <- paste0("<b>Proportion positive mosquitoes<b>", final_mosquito_leaf$prop_pos_mos)
 
 pal <- colorNumeric(
-  palette = "YlGnBu",
+  palette = viridis(7),
   domain = final_mosquito_leaf$prop_pos_mos
   
   
@@ -222,12 +223,11 @@ precip_data <- read_csv("../data/precip.csv") %>%
 
 head(precip_data)
 
-
-
 ```
 
 
 Join all of the datasets together
+We're not sure why we can't 
 ```{r}
 
 all_data <- left_join(final_mosquito, storm_events, by = c("year", "week")) %>%
@@ -302,7 +302,7 @@ Build linear prediction model for proportion of positive mosquitos
 ```{r}
 
 # input the variables we believe to be predictive
-equation_test <- formula(prop_pos_mos ~ fp(precip_mean) + fp(avg_soil_t_4) + fp(avg_soil_t_2) + fp(week) +fp(avg_temp))
+equation_test <- formula(prop_pos_mos ~ fp(week) +fp(avg_temp) + fp(precip_mean) + fp(avg_soil_t_4) + fp(avg_soil_t_2) )
 
 # multivariate fractional polynomials will determine to what power each variable should be multiplied
 mfp_testing <- mfp(equation_test, data = train_all_data, select = 0.05)
@@ -336,6 +336,7 @@ summary(tree_fit) # detailed summary of splits
 
 # get the mean average error for our model
 mae(model = tree_fit, data = test_all_data)
+
 
 # plot decision tree 
 prp(tree_fit, main="Classification Tree for Predicting Proportion of Positive Mosquitoes")	
