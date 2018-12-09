@@ -3,8 +3,8 @@ title: "Predicting Westnile"
 author: "Camron Pearce, Amy Fox, Alyssa Melvin, Kayla Williams"
 date: "November 7, 2018"
 output:
-  pdf_document: default
   html_document: default
+  pdf_document: default
 ---
 
 ```{r setup, include=FALSE}
@@ -28,6 +28,7 @@ library(ggplot2)
 library(modelr)
 library(rpart)
 library(randomForest)
+library(rattle)
 library(rpart.plot)
 
 ```
@@ -439,36 +440,3 @@ data_wo_char %>%
   shave() %>% 
   fashion()
 ```
-
-```{r}
-
-#want to find R^2 to see if there is any correlation between positive mosquitos and 
-#different weather variables individually
-
-#average temp
-ggplot(all_data, aes(x = avg_temp, y = total_no_mos, color = pos_mos_no)) +
-  geom_point() +
-  geom_smooth(se = FALSE)
-
-#min temp
-ggplot(all_data, aes(x = TMIN_avg, y = total_no_mos, color = pos_mos_no)) +
-  geom_point()
-
-#max temp
-ggplot(all_data, aes(x = TMAX_avg, y = total_no_mos, color = pos_mos_no)) +
-  geom_point()
-
-#wind speed
-ggplot(all_data, aes(x = max_wind, y = total_no_mos, color = pos_mos_no)) +
-  geom_point()
-
-#soil temp
-
-#precip
-
-  
-  
-
-```
-
-
