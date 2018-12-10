@@ -351,7 +351,7 @@ mae(model = linear_fit, data = test_all_data)
 ```{r}
 
 # build regression tree model
-tree_fit1 <- rpart(prop_pos_mos ~ precip_mean + avg_soil_t_4 + avg_soil_t_2 + week + avg_temp + WDMV,
+tree_fit <- rpart(prop_pos_mos ~ precip_mean + avg_soil_t_4 + avg_soil_t_2 + week + avg_temp + WDMV,
   	method="class", data = train_all_data, cp = 0.01)
 
 printcp(tree_fit) # display the results 
@@ -362,7 +362,6 @@ mae(model = tree_fit, data = test_all_data)
 
 # plot decision tree 
 prp(tree_fit, main="Classification Tree for Predicting Proportion of Positive Mosquitoes", fallen.leaves = TRUE)
-
 
 ```
 ## Random Forest Model
