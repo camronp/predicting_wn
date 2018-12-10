@@ -383,11 +383,18 @@ print(forest_fit) # view results
 varImpPlot(forest_fit,main="Important variables Random Forest")
 
 impor_var <- as.data.frame(forest_fit$importance) %>%
-  add_rownames("variables") 
+  add_rownames("variables") %>%
+  rename(MSE = `%IncMSE`)
 
 ggplot(impor_var, aes(x = reorder(variables, -IncNodePurity), y = IncNodePurity, fill = variables)) +
   geom_bar(stat = "identity") +
   ylab("Node Purity")+
+  xlab("Variables") +
+  ggtitle("Importance of Random Forest Variables")
+
+ggplot(impor_var, aes(x = reorder(variables, -MSE), y = MSE, fill = variables)) +
+  geom_bar(stat = "identity") +
+  ylab("Mean square error (%)")+
   xlab("Variables") +
   ggtitle("Importance of Random Forest Variables")
 
