@@ -195,10 +195,13 @@ weather_data <- read_csv("../data/weather_data.csv") %>%
   mutate(TMAX_avg = mean(TMAX, na.rm = TRUE)) %>% 
   mutate(TMIN_avg = mean(TMIN, na.rm = TRUE)) %>% 
   mutate(avg_temp = (TMIN_avg + TMAX_avg)/2) %>% 
+  mutate(WDMV = max(WDMV, na.rm = TRUE)) %>% 
   select(-TOBS, -date, -SN32, -SN52, -SX32, -SX52, -station, -name,
          -TMAX, -TMIN) %>% 
   arrange(year, week) %>% 
   ungroup()
+
+data <- data_frame(year = 2017, week = seq(1,52,1))
 
 weather_data[, c("week", "year", "TMIN_avg", "TMAX_avg", "avg_temp", "WDMV")]
   
@@ -277,7 +280,7 @@ ggplot(pos_plus_all, aes(x = no_mos, y = precip_mean)) +
 Build prediction model for proportion of positive mosquitos
 ```{r}
 
-equation_test <- formula(prop_pos_mos ~ fp(precip_mean) + fp(avg_soil_t_4) + fp(avg_soil_t_2) + fp(week) +fp(avg_temp) + fp(WDNV))
+equation_test <- formula(prop_pos_mos ~ fp(precip_mean) + fp(avg_soil_t_4) + fp(avg_soil_t_2) + fp(week) +fp(avg_temp) + fp(WDMV))
 
 mfp_testing <- mfp(equation_test, data = all_data, select = 0.05)
 
@@ -344,7 +347,10 @@ data_wo_char %>%
 #average temp
 ggplot(all_data, aes(x = avg_temp, y = total_no_mos, color = pos_mos_no)) +
   geom_point() +
-  geom_smooth(se = FALSE)
+  scale_color_brewer(palette = "YlOrRd",
+                     name = "Number of Positive Mosquitos") +
+  geom_smooth(se = FALSE) 
+  
 
 #min temp
 ggplot(all_data, aes(x = TMIN_avg, y = total_no_mos, color = pos_mos_no)) +
