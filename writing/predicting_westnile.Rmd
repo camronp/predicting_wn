@@ -1,8 +1,10 @@
 ---
-title: "predicting_westnile"
+title: "Predicting Westnile"
 author: "Camron Pearce, Amy Fox, Alyssa Melvin, Kayla Williams"
 date: "November 7, 2018"
-output: html_document
+output:
+  html_document: default
+  pdf_document: default
 ---
 
 ```{r setup, include=FALSE}
@@ -11,7 +13,7 @@ knitr::opts_chunk$set(echo = TRUE)
 
 
 
-```{r}
+```{r, message = FALSE, warning = FALSE, echo = FALSE}
 library(readr)
 library(dplyr)
 library(lubridate)
@@ -23,6 +25,11 @@ library(rnoaa)
 library(corrplot)
 library(mfp)
 library(ggplot2)
+library(modelr)
+library(rpart)
+library(randomForest)
+library(rattle)
+library(rpart.plot)
 
 ```
 
@@ -37,7 +44,6 @@ mosquito_data <- mosquito_data_original %>%
   mutate(`TEST DATE` = mdy_hms(`TEST DATE`)) %>%
   rename_all(.funs = str_to_lower) %>%
   rename(year = `season year`, test_id = `test id`, test_date = `test date`,
-
          number_mosquitos = `number of mosquitoes`)
 
 # find the total # mosquitoes collected each week
@@ -64,8 +70,27 @@ head(final_mosquito)
   
 ```
 
+Plot proportion of positive mosquitoes
+ 
+```{r}
+
+new_mos<- mosquito_data %>%
+  group_by(week, year, result) %>%
+  summarise(no_mos = sum(number_mosquitos))
+
+pos_plus_all <- full_join(new_mos, all_data) %>%
+  filter(year == 2016)
+
+ggplot(pos_plus_all, aes(x = week, y = no_mos, fill = result)) +
+  geom_bar(stat = "identity") +
+  labs(x = "Week of 2016", y = "Number of collected mosquitoes") +
+  ggtitle("Positive West Nile Virus Mosquitoes 2016")
+
+
+```
+
 Read in and clean storm data
-```{r storm data}
+```{r storm data, message = FALSE}
 storms_2016 <- read_csv("../data/StormEvents_details-ftp_v1.0_d2016_c20180718.csv") 
 
 storms_2017 <- read_csv("../data/StormEvents_details-ftp_v1.0_d2017_c20181017.csv")
@@ -92,9 +117,7 @@ storm_events <- unique(all_storm[c("year", "week", "event_type")])
 
 Add interactive feature with number of positive or negative mosquitos found
 Can use to see the locations where more positive mosquitoes are found
-```{r}
-
-pal <- colorFactor(viridis(2), final_mosquito$result)
+```{r leaflet, warning = FALSE}
 
 # find the total # mosquitoes collected each week
 mosquito_data_tot_leaf <- mosquito_data %>%
@@ -115,23 +138,22 @@ final_mosquito_leaf <- mosquito_data_tot_leaf %>%
   mutate(prop_pos_mos = pos_mos_no / total_no_mos) %>%
   select(latitude, longitude, pos_mos_no, total_no_mos, prop_pos_mos)
 
+# create popup info for 
+popup_info <- paste0("<b>Proportion WNV mosquitoes<b>", round(final_mosquito_leaf$prop_pos_mos, digits = 2))
 
-popup_info <- paste0("<b>Proportion positive mosquitoes<b>", final_mosquito_leaf$prop_pos_mos)
-
+# create colors for map
 pal <- colorNumeric(
-  palette = "YlGnBu",
-  domain = final_mosquito_leaf$prop_pos_mos
+  palette = viridis(7),
+  domain = final_mosquito_leaf$prop_pos_mos)
   
-  
-)
-
+# develop leaflet
 leaflet(data = final_mosquito_leaf) %>%
   addTiles() %>%
   addCircleMarkers(data = final_mosquito_leaf, radius = ~prop_pos_mos*10,
                    lng = ~longitude, lat = ~latitude, 
                    color = ~pal(prop_pos_mos),
                    group = "mosquito", popup = popup_info)  %>%
-  addLegend(pal = pal, values = ~prop_pos_mos, opacity = 0.9) 
+  addLegend(pal = pal, values = ~prop_pos_mos, opacity = 0.9, title = "proportion \n WNV mosquitoes") 
 
 
   
@@ -184,7 +206,8 @@ tail(all_soil_temps)
 Read in weather data and clean up
 ```{r weather}
 
-weather_data <- read_csv("../data/weather_data.csv") %>% 
+weather_data <- 
+  read_csv("../data/weather_data.csv") %>% 
   rename(station = "STATION",
          name = "NAME",
          date = "DATE") %>% 
@@ -195,15 +218,23 @@ weather_data <- read_csv("../data/weather_data.csv") %>%
   mutate(TMAX_avg = mean(TMAX, na.rm = TRUE)) %>% 
   mutate(TMIN_avg = mean(TMIN, na.rm = TRUE)) %>% 
   mutate(avg_temp = (TMIN_avg + TMAX_avg)/2) %>% 
+<<<<<<< HEAD
   mutate(WDMV = max(WDMV, na.rm = TRUE)) %>% 
+=======
+  mutate(max_wind = max(WDMV, na.rm = TRUE )) %>% 
+>>>>>>> 2eab0b4b147e655574b2f475339b8e70a1a34d48
   select(-TOBS, -date, -SN32, -SN52, -SX32, -SX52, -station, -name,
-         -TMAX, -TMIN) %>% 
-  arrange(year, week) %>% 
+         -TMAX, -TMIN, -WDMV) %>% 
+  arrange(year, week) %>%
+  filter(row_number() == 1) %>% 
   ungroup()
+<<<<<<< HEAD
 
 data <- data_frame(year = 2017, week = seq(1,52,1))
 
 weather_data[, c("week", "year", "TMIN_avg", "TMAX_avg", "avg_temp", "WDMV")]
+=======
+>>>>>>> 2eab0b4b147e655574b2f475339b8e70a1a34d48
   
 head(weather_data)
 
@@ -224,6 +255,7 @@ head(precip_data)
 
 
 Join all of the datasets together
+We're not sure why we can't 
 ```{r}
 
 all_data <- left_join(final_mosquito, storm_events, by = c("year", "week")) %>%
@@ -233,91 +265,169 @@ all_data <- left_join(final_mosquito, storm_events, by = c("year", "week")) %>%
 
 head(all_data)
 
-```
-
-Plot positive mosquito and precipitation
-
-Compare the preciptation by week and positive mosquitos by week on top of each other to see similarities-- acutally try to add on top of graph
- 
-```{r}
-
-pos_2016 <- full_join(positive_mosquito, all_data) %>%
-  filter(year == 2016)
-
-library(ggplot2)
-
-# 2D hexbin plots
-
-
-ggplot(pos_2016, aes(x = week, y = precip_mean)) +
-  geom_point() +
-  geom_smooth() +
-  labs(x = "Week of 2016", y = "Precipitation in inches??")
-  ggtitle("Precipitation by Week in 2016")
-
-new_mos<- mosquito_data %>%
-  group_by(week, year, result) %>%
-  summarise(no_mos = sum(number_mosquitos))
-
-pos_plus_all <- full_join(new_mos, all_data) %>%
-  filter(year == 2016)
-
-ggplot(pos_plus_all, aes(x = week, y = no_mos, fill = result)) +
-  geom_bar(stat = "identity") +
-  labs(x = "Week of 2016", y = "Number of collected mosquitoes") +
-  ggtitle("Positive West Nile Virus Mosquitoes 2016")
-
-ggplot(pos_plus_all, aes(x = no_mos, y = precip_mean)) +
-  geom_point() +
-  geom_smooth() +
-  labs(x = "number collected mosquitos", y = "average precipitation") +
-  ggtitle("Not looking great on correlation")
-
+all_data_wo_storm <- left_join(final_mosquito, all_soil_temps, by = c("year", "week")) %>%
+            left_join(weather_data, by =  c("year", "week")) %>% 
+            left_join(precip_data, by =  c("year", "week"))
 
 ```
 
 
-Build prediction model for proportion of positive mosquitos
+
+# Prediction Models
+
+Split the data into 2, one fore training the prediction models, and the other for testing 
+```{r}
+train_all_data <- all_data %>%
+  filter(year %in% c(2016, 2017))
+
+test_all_data <- all_data %>%
+  filter(year == 2018)
+```
+
+
+## Linear Model
+
+Build multivariable fractional polynomial prediction model for proportion of positive mosquitos
+
 ```{r}
 
-equation_test <- formula(prop_pos_mos ~ fp(precip_mean) + fp(avg_soil_t_4) + fp(avg_soil_t_2) + fp(week) +fp(avg_temp) + fp(WDMV))
+# input the variables we believe to be predictive
+equation_test <- formula(prop_pos_mos ~ fp(week) +fp(avg_temp) + fp(precip_mean) + fp(avg_soil_t_4) + fp(avg_soil_t_2) )
 
-mfp_testing <- mfp(equation_test, data = all_data, select = 0.05)
+# multivariate fractional polynomials will determine to what power each variable should be multiplied
+mfp_testing <- mfp(equation_test, data = train_all_data, select = 0.05)
 
-summary(mfp_testing)
+# perform linear model with the formula developed from the mfp_testing
+linear_fit <- lm(mfp_testing$formula, train_all_data)
 
-mos_mod <- lm(mfp_testing$formula, all_data)
+mfp_testing$formula
 
-summary(mos_mod)
+# summary of linear fit with the r^2 value
+summary(linear_fit)
 
 # test prediction model
-predict.lm(mos_mod, data_frame(precip_mean = 0.078, avg_soil_t_4 = 72.1, avg_soil_t_2 = 74.7, week = 34))
+predict.lm(linear_fit, data_frame(precip_mean = 0.078, avg_soil_t_4 = 72.1, avg_soil_t_2 = 200, week = 34, avg_temp = 75))
 
-#week 34 2017:  72.1 t4, 74.7 t2, 0.078 precip --> actual propotion = 0.52, 
+
+
+# get the mean average error fo the linear model
+mae(model = linear_fit, data = test_all_data)
 ```
+
+## Regression Tree MOdel
+
+```{r}
+
+<<<<<<< HEAD
+equation_test <- formula(prop_pos_mos ~ fp(precip_mean) + fp(avg_soil_t_4) + fp(avg_soil_t_2) + fp(week) +fp(avg_temp) + fp(WDMV))
+=======
+# build regression tree model
+tree_fit <- rpart(prop_pos_mos ~ precip_mean + avg_soil_t_4 + avg_soil_t_2 + week + avg_temp,
+  	method="class", data = train_all_data)
+>>>>>>> 2eab0b4b147e655574b2f475339b8e70a1a34d48
+
+printcp(tree_fit) # display the results 
+summary(tree_fit) # detailed summary of splits
+#importance(tree_fit)
+
+# get the mean average error for our model
+mae(model = tree_fit, data = test_all_data)
+
+
+# plot decision tree 
+prp(tree_fit, main="Classification Tree for Predicting Proportion of Positive Mosquitoes", fallen.leaves = TRUE)
+
+
+```
+## Random Forest Model
+
+Plot variable importance 
+```{r}
+
+# build random forest prediction model
+forest_fit <- randomForest(prop_pos_mos ~ precip_mean + avg_soil_t_4 + avg_soil_t_2 + week + avg_temp,
+  	data = train_all_data, importance = TRUE)
+
+# get the mean average error for our model
+mae(model = forest_fit, data = test_all_data)
+
+print(forest_fit) # view results 
+
+varImpPlot(forest_fit,main="Important variables Random Forest")
+
+impor_var <- as.data.frame(forest_fit$importance) %>%
+  add_rownames("variables") 
+
+ggplot(impor_var, aes(x = reorder(variables, -IncNodePurity), y = IncNodePurity, fill = variables)) +
+  geom_bar(stat = "identity") +
+  ylab("Node Purity")+
+  xlab("Variables") +
+  ggtitle("Importance of Random Forest Variables")
+
+forest_pre <- predict(forest_fit, data_frame(precip_mean = 0.078, avg_soil_t_4 = 72.1, avg_soil_t_2 = 200, week = 34, avg_temp = 75), type = "class")
+
+```
+
+What does the mean average error look like if we did not split the data into training and testing data to begin
+```{r}
+
+# multivariate fractional polynomials will determine to what power each variable should be multiplied
+mfp_testing_all <- mfp(equation_test, data = all_data, select = 0.05)
+
+# perform linear model with the formula developed from the mfp_testing
+linear_fit_all <- lm(mfp_testing_all$formula, all_data)
+
+# get the mean average error fo the linear model
+mae(model = linear_fit_all, data = all_data)
+
+# build regression tree model
+tree_fit_all <- rpart(prop_pos_mos ~ precip_mean + avg_soil_t_4 + avg_soil_t_2 + week + avg_temp,
+  	method="class", data = all_data)
+
+# get the mean average error for our model
+mae(model = tree_fit_all, data = all_data)
+
+# build random forest prediction model
+forest_fit_all <- randomForest(prop_pos_mos ~ precip_mean + avg_soil_t_4 + avg_soil_t_2 + week + avg_temp,
+  	data = all_data, importance = TRUE)
+
+<<<<<<< HEAD
+#average temp
+ggplot(all_data, aes(x = avg_temp, y = total_no_mos, color = pos_mos_no)) +
+  geom_point() +
+  scale_color_brewer(palette = "YlOrRd",
+                     name = "Number of Positive Mosquitos") +
+  geom_smooth(se = FALSE) 
+  
+=======
+# get the mean average error for our model
+mae(model = forest_fit_all, data = all_data)
+```
+>>>>>>> 2eab0b4b147e655574b2f475339b8e70a1a34d48
+
+
 
 Correlation matrix using correlogram 
 Looks at different types of correlograms to visualize data
 
-```{r}
+```{r fig.width =7, fig.height = 7}
 
-# Remove columns with character values
+# Remove columns with character values and malke pretty label names
 data_wo_char <- all_data %>%
-  select(-event_type, -year)
-
-colnames(all_data)
+  select(-event_type, -year, -TMIN_avg, -TMAX_avg, -max_wind) %>%
+  rename("# of WNV mosquitoes"= pos_mos_no,
+         "total # of mosquitoes" = total_no_mos,
+         "ratio of WNV mosquitoes" = prop_pos_mos,
+         "average 4 inch soil temp" = avg_soil_t_4,
+         "average 2 inch soil temp" = avg_soil_t_2,
+         "average temp" = avg_temp,
+         "average precipitation" = precip_mean)
 
 correlation <- cor(data_wo_char)
 
-corrplot::corrplot(correlation, method = "number")
-
-corrplot.mixed(correlation)
-
-corrplot(correlation, method = "number", "upper")
-
-pairs(data_wo_char)
-
-cor(data_wo_char)
+corrplot(correlation, method = "number", "upper", 
+         title = "Variable Correlation Plot",
+         mar=c(0,0,2,0))
 
 ```
 
@@ -329,7 +439,6 @@ data_wo_char %>%
     correlate() %>% 
   network_plot(min_cor = .2)
 
-findCorrelation(all_data, cutoff = .75)
 
 
 data_wo_char %>% 
@@ -338,39 +447,3 @@ data_wo_char %>%
   shave() %>% 
   fashion()
 ```
-
-```{r}
-
-#want to find R^2 to see if there is any correlation between positive mosquitos and 
-#different weather variables individually
-
-#average temp
-ggplot(all_data, aes(x = avg_temp, y = total_no_mos, color = pos_mos_no)) +
-  geom_point() +
-  scale_color_brewer(palette = "YlOrRd",
-                     name = "Number of Positive Mosquitos") +
-  geom_smooth(se = FALSE) 
-  
-
-#min temp
-ggplot(all_data, aes(x = TMIN_avg, y = total_no_mos, color = pos_mos_no)) +
-  geom_point()
-
-#max temp
-ggplot(all_data, aes(x = TMAX_avg, y = total_no_mos, color = pos_mos_no)) +
-  geom_point()
-
-#wind speed
-ggplot(all_data, aes(x = WDMV, y = total_no_mos, color = pos_mos_no)) +
-  geom_point()
-
-#soil temp
-
-#precip
-
-  
-  
-
-```
-
-

@@ -1,0 +1,96 @@
+---
+title: "West Nile Virus in Chicago"
+output: 
+  flexdashboard::flex_dashboard:
+    orientation: columns
+    social: menu
+    source_code: embed
+runtime: shiny
+---
+
+```{r setup, include=FALSE}
+library(flexdashboard)
+library(ggplot2)
+library(mgcv)
+library(shiny)
+library(dplyr)
+library(readr)
+
+all_data_no_storm <- 
+  read_csv("https://raw.githubusercontent.com/camronp/predicting_wn/master/data/all_data_no_storm") %>% 
+  select(-X1)
+```
+
+Inputs {.sidebar}
+-----------------------------------------------------------------------
+
+### Comparing Mosquito Variables
+
+```{r}
+sliderInput("weekmin", label = "Week", min = 23, max = 39, value = 24)
+
+checkboxInput("smooth", "Smooth", value = FALSE)
+
+selectInput("x", label = "X-Axis", choices = c("Week" = "week",
+  "Year" = "year",
+  "Positive Mosquitoes" = "pos_mos_no",
+  "Total Mosquitoes" = "total_no_mos",
+  "Proportion of Positive" = "prop_pos_mos",
+  "Soil Temp At 4 in." = "avg_soil_t_4",
+  "Soil Temp At 2 in." = "avg_soil_t_2",
+  "Average Max Temp" = "TMAX_avg",
+  "Average Min Temp" = "TMIN_avg",
+  "Average Temp" = "avg_temp",
+  "Average Precipitation" = "precip_mean"),
+  selected = "avg_temp")
+
+selectInput("y", label = "Y-Axis", choices =  c("Week" = "week",
+  "Year" = "year",
+  "Positive Mosquitoes" = "pos_mos_no",
+  "Total Mosquitoes" = "total_no_mos",
+  "Proportion of Positive" = "prop_pos_mos",
+  "Soil Temp At 4 in." = "avg_soil_t_4",
+  "Soil Temp At 2 in." = "avg_soil_t_2",
+  "Average Max Temp" = "TMAX_avg",
+  "Average Min Temp" = "TMIN_avg",
+  "Average Temp" = "avg_temp",
+  "Average Precipitation" = "precip_mean"),
+  selected = "total_no_mos")
+
+checkboxGroupInput("checkyear",
+                   "Years to Display",
+                   c("2016" = "2016", "2017" = "2017", "2018" = "2018"),
+                   selected = "2016")
+                   
+
+```
+
+Outputs
+-----------------------------------------------------------------------
+
+### Graph Outputs
+
+```{r}
+dataset <- reactive({
+  all_data_no_storm %>% 
+  filter(week < input$weekmin) %>%    
+  filter(year == as.numeric(input$checkyear))
+})
+
+renderPlot({
+  p <- ggplot(dataset(), aes_string(x =input$x, 
+                                    y = input$y)) + 
+    geom_point(size = 4) +
+    theme_bw()
+  
+  if (input$smooth)
+    p <- p + geom_smooth(size = 1, color = "green", se = FALSE)
+  
+  print(p)
+})
+
+
+```
+
+
+
