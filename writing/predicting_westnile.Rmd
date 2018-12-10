@@ -156,6 +156,7 @@ weather_data <-
   mutate(TMAX_avg = mean(TMAX, na.rm = TRUE)) %>% 
   mutate(TMIN_avg = mean(TMIN, na.rm = TRUE)) %>% 
   mutate(avg_temp = (TMIN_avg + TMAX_avg)/2) %>% 
+  mutate(WDMV = as.numeric(WDMV)) %>% 
   mutate(WDMV = max(WDMV, na.rm = TRUE)) %>% 
   select(-TOBS, -date, -SN32, -SN52, -SX32, -SX52, -station, -name,
          -TMAX, -TMIN) %>% 
@@ -435,70 +436,125 @@ mae(model = forest_fit_all, data = all_data)
 #average temp
 ggplot(all_data, aes(x = avg_temp, 
                      y = total_no_mos, color = pos_mos_no)) +
-  geom_point() +
+  geom_point(size = 3) +
   scale_color_gradient(low = "blue", high = "red") +
   geom_smooth(se = FALSE, color = "black") +
   labs(x = "Mean Temperature (°F)", y = "Mosquito Count",
-       color = "Number of Mosquitoes Positive for WNV")
+       color = "Mosquitoes \nPositive for WNV") +
+  theme(axis.text.x = element_text(size = 20),
+        axis.text.y = element_text(size = 20),
+        axis.title.x = element_text(size = 20),
+        axis.title.y = element_text(size = 20),
+        legend.title = element_text(size = 20),
+        legend.text = element_text(size = 15),
+        legend.key.height = unit(2, "cm"))
+
 
 #avg soil temp 4 inch
 ggplot(all_data, aes(x = avg_soil_t_4, 
                      y = total_no_mos, color = pos_mos_no)) +
-  geom_point() +
+  geom_point(size = 3) +
   scale_color_gradient(low = "blue", high = "red") +
   geom_smooth(se = FALSE, color = "black") +
   labs(x = "Mean Soil Temperature, 4 inch (°F)", y = "Mosquito Count",
-       color = "Number of Mosquitoes Positive for WNV")
+         color = "Mosquitoes \nPositive for WNV") +
+  theme(axis.text.x = element_text(size = 20),
+        axis.text.y = element_text(size = 20),
+        axis.title.x = element_text(size = 20),
+        axis.title.y = element_text(size = 20),
+        legend.title = element_text(size = 20),
+        legend.text = element_text(size = 15),
+        legend.key.height = unit(2, "cm"))
+
 
 # avg soil temp 2 inch
 ggplot(all_data, aes(x = avg_soil_t_2, 
                      y = total_no_mos, color = pos_mos_no)) +
-  geom_point() +
+  geom_point(size = 3) +
   scale_color_gradient(low = "blue", high = "red") +
   geom_smooth(se = FALSE, color = "black") +
   labs(x = "Mean Soil Temperature, 2 inch (°F)", y = "Mosquito Count",
-       color = "Number of Mosquitoes Positive for WNV") 
+       color = "Mosquitoes \nPositive for WNV") +
+  theme(axis.text.x = element_text(size = 20),
+        axis.text.y = element_text(size = 20),
+        axis.title.x = element_text(size = 20),
+        axis.title.y = element_text(size = 20),
+        legend.title = element_text(size = 20),
+        legend.text = element_text(size = 15),
+        legend.key.height = unit(2, "cm")) 
 
 # wind
 ggplot(all_data, aes(x = WDMV, 
                      y = total_no_mos, color = pos_mos_no)) +
-  geom_point() +
+  geom_point(size = 3) +
   scale_color_gradient(low = "blue", high = "red") +
   geom_smooth(se = FALSE, color = "black") +
   labs(x = "Max 24-h Wind Movement (miles)", y = "Mosquito Count",
-       color = "Number of Mosquitoes Positive for WNV") 
+       color = "Mosquitoes \nPositive for WNV") +
+  theme(axis.text.x = element_text(size = 20),
+        axis.text.y = element_text(size = 20),
+        axis.title.x = element_text(size = 20),
+        axis.title.y = element_text(size = 20),
+        legend.title = element_text(size = 20),
+        legend.text = element_text(size = 15),
+        legend.key.height = unit(2, "cm")) 
+
 
 # mean max temp
 ggplot(all_data, aes(x = TMAX_avg, 
                      y = total_no_mos, color = pos_mos_no)) +
-  geom_point() +
+  geom_point(size = 3) +
   scale_color_gradient(low = "blue", high = "red") +
   geom_smooth(se = FALSE, color = "black") +
   labs(x = "Mean Maximum Temperature (°F)", y = "Mosquito Count",
-       color = "Number of Mosquitoes Positive for WNV") 
+       color = "Mosquitoes \nPositive for WNV") +
+  theme(axis.text.x = element_text(size = 20),
+        axis.text.y = element_text(size = 20),
+        axis.title.x = element_text(size = 20),
+        axis.title.y = element_text(size = 20),
+        legend.title = element_text(size = 20),
+        legend.text = element_text(size = 15),
+        legend.key.height = unit(2, "cm")) 
+
 
 # average min temp
 ggplot(all_data, aes(x = TMIN_avg, 
                      y = total_no_mos, color = pos_mos_no)) +
-  geom_point() +
+  geom_point(size = 3) +
   scale_color_gradient(low = "blue", high = "red") +
   geom_smooth(se = FALSE, color = "black") +
   labs(x = "Mean Minimum Temperature (°F)", y = "Mosquito Count",
-       color = "Number of Mosquitoes Positive for WNV") 
+       color = "Mosquitoes \nPositive for WNV") +
+  theme(axis.text.x = element_text(size = 20),
+        axis.text.y = element_text(size = 20),
+        axis.title.x = element_text(size = 20),
+        axis.title.y = element_text(size = 20),
+        legend.title = element_text(size = 20),
+        legend.text = element_text(size = 15),
+        legend.key.height = unit(2, "cm"))
+
 
 # precip mean
 ggplot(all_data, aes(x = precip_mean, 
                      y = total_no_mos, color = pos_mos_no)) +
-  geom_point() +
+  geom_point(size = 3) +
   scale_color_gradient(low = "blue", high = "red") +
   geom_smooth(se = FALSE, color = "black") +
   labs(x = "Mean Precipitation (inches)", y = "Mosquito Count",
-       color = "Mosquitoes Positive for WNV") 
-
-
+       color = "Mosquitoes \nPositive for WNV") +
+  theme(axis.text.x = element_text(size = 20),
+        axis.text.y = element_text(size = 20),
+        axis.title.x = element_text(size = 20),
+        axis.title.y = element_text(size = 20),
+        legend.title = element_text(size = 20),
+        legend.text = element_text(size = 15),
+        legend.key.height = unit(2, "cm"))
 
 ```
-
+```{r parameters for tiff device}
+# tiff("../folder/name.tiff", height = 750, width = 1000)
+# dev.off()
+```
 
 
 
