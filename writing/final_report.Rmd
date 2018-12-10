@@ -274,11 +274,14 @@ We also had a hard time conceptualizing exactly what we wanted to predict. We st
 
 # What we’d do differently
 
-* Decide on what we want to predict quicker
-+ Choose something easy  
 * Contact Public Health Departments or other entities at the beginning for access to data
 * Really understand prediction models in R
-* Create document where we record the changes made and by whom
+* Come up with an idea for a prediction model earlier
+* Create a "records" document to track changes
+* Changes and additions to the Shiny app
+* Use sepearate "testing" notation for markdown chunks
+* Annotate code more often
+* Overall better communication
 
 	
 ### References:

@@ -71,8 +71,6 @@ head(final_mosquito)
   
 ```
 
-
-
 Read in and clean storm data
 ```{r storm data, message = FALSE}
 storms_2016 <- read_csv("../data/StormEvents_details-ftp_v1.0_d2016_c20180718.csv") 
@@ -98,8 +96,6 @@ head(all_storm)
 storm_events <- unique(all_storm[c("year", "week", "event_type")])
   
 ```
-
-
 
 
 
@@ -160,13 +156,15 @@ weather_data <-
   mutate(TMAX_avg = mean(TMAX, na.rm = TRUE)) %>% 
   mutate(TMIN_avg = mean(TMIN, na.rm = TRUE)) %>% 
   mutate(avg_temp = (TMIN_avg + TMAX_avg)/2) %>% 
-  mutate(max_wind = max(WDMV, na.rm = TRUE )) %>% 
+  mutate(WDMV = max(WDMV, na.rm = TRUE)) %>% 
   select(-TOBS, -date, -SN32, -SN52, -SX32, -SX52, -station, -name,
-         -TMAX, -TMIN, -WDMV) %>% 
+         -TMAX, -TMIN) %>% 
   arrange(year, week) %>%
   filter(row_number() == 1) %>% 
   ungroup()
-  
+
+weather_data[, c("week", "year", "TMIN_avg", "TMAX_avg", "avg_temp", "WDMV")]
+
 head(weather_data)
 
 precip_data <- read_csv("../data/precip.csv") %>% 
@@ -186,10 +184,11 @@ head(precip_data)
 
 
 Join all of the datasets together
-We're not sure why we can't 
+
 ```{r}
 
-all_data <- left_join(final_mosquito, storm_events, by = c("year", "week")) %>%
+all_data <- left_join(final_mosquito, storm_events, 
+                      by = c("year", "week")) %>%
             left_join(all_soil_temps, by =  c("year", "week")) %>%
             left_join(weather_data, by =  c("year", "week")) %>% 
             left_join(precip_data, by =  c("year", "week"))
@@ -200,6 +199,8 @@ all_data_wo_storm <- left_join(final_mosquito, all_soil_temps, by = c("year", "w
             left_join(weather_data, by =  c("year", "week")) %>% 
             left_join(precip_data, by =  c("year", "week"))
 
+head(all_data_wo_storm)
+
 ```
 
 # Correlation Plots
@@ -208,7 +209,7 @@ Looks at different types of correlograms to visualize data
 
 ```{r fig.width =7, fig.height = 7}
 
-# Remove columns with character values and malke pretty label names
+# Remove columns with character values and make pretty label names
 data_wo_char <- all_data %>%
   select(-event_type, -year, -TMIN_avg, -TMAX_avg, -max_wind) %>%
   rename("# of WNV mosquitoes"= pos_mos_no,
@@ -229,7 +230,6 @@ corrplot(correlation, method = "number", "upper",
 
 Correlation graphs
 ```{r}
-
 
 data_wo_char %>% 
     correlate() %>% 
@@ -300,9 +300,8 @@ leaflet(data = final_mosquito_leaf) %>%
                    group = "mosquito", popup = popup_info)  %>%
   addLegend(pal = pal, values = ~prop_pos_mos, opacity = 0.9, title = "proportion \n WNV mosquitoes") 
 
-
-  
 ```
+
 
 # Prediction Models
 
@@ -348,6 +347,8 @@ mae(model = linear_fit, data = test_all_data)
 ## Regression Tree Model
 
 ```{r}
+
+equation_test <- formula(prop_pos_mos ~ fp(precip_mean) + fp(avg_soil_t_4) + fp(avg_soil_t_2) + fp(week) +fp(avg_temp) + fp(WDMV))
 
 # build regression tree model
 tree_fit1 <- rpart(prop_pos_mos ~ precip_mean + avg_soil_t_4 + avg_soil_t_2 + week + avg_temp,
@@ -421,6 +422,74 @@ forest_fit_all <- randomForest(prop_pos_mos ~ precip_mean + avg_soil_t_4 + avg_s
 
 # get the mean average error for our model
 mae(model = forest_fit_all, data = all_data)
+```
+
+```{r}
+#average temp
+ggplot(all_data, aes(x = avg_temp, 
+                     y = total_no_mos, color = pos_mos_no)) +
+  geom_point() +
+  scale_color_gradient(low = "blue", high = "red") +
+  geom_smooth(se = FALSE, color = "black") +
+  labs(x = "Mean Temperature (°F)", y = "Mosquito Count",
+       color = "Number of Mosquitoes Positive for WNV")
+
+#avg soil temp 4 inch
+ggplot(all_data, aes(x = avg_soil_t_4, 
+                     y = total_no_mos, color = pos_mos_no)) +
+  geom_point() +
+  scale_color_gradient(low = "blue", high = "red") +
+  geom_smooth(se = FALSE, color = "black") +
+  labs(x = "Mean Soil Temperature, 4 inch (°F)", y = "Mosquito Count",
+       color = "Number of Mosquitoes Positive for WNV")
+
+# avg soil temp 2 inch
+ggplot(all_data, aes(x = avg_soil_t_2, 
+                     y = total_no_mos, color = pos_mos_no)) +
+  geom_point() +
+  scale_color_gradient(low = "blue", high = "red") +
+  geom_smooth(se = FALSE, color = "black") +
+  labs(x = "Mean Soil Temperature, 2 inch (°F)", y = "Mosquito Count",
+       color = "Number of Mosquitoes Positive for WNV") 
+
+# wind
+ggplot(all_data, aes(x = WDMV, 
+                     y = total_no_mos, color = pos_mos_no)) +
+  geom_point() +
+  scale_color_gradient(low = "blue", high = "red") +
+  geom_smooth(se = FALSE, color = "black") +
+  labs(x = "Max 24-h Wind Movement (miles)", y = "Mosquito Count",
+       color = "Number of Mosquitoes Positive for WNV") 
+
+# mean max temp
+ggplot(all_data, aes(x = TMAX_avg, 
+                     y = total_no_mos, color = pos_mos_no)) +
+  geom_point() +
+  scale_color_gradient(low = "blue", high = "red") +
+  geom_smooth(se = FALSE, color = "black") +
+  labs(x = "Mean Maximum Temperature (°F)", y = "Mosquito Count",
+       color = "Number of Mosquitoes Positive for WNV") 
+
+# average min temp
+ggplot(all_data, aes(x = TMIN_avg, 
+                     y = total_no_mos, color = pos_mos_no)) +
+  geom_point() +
+  scale_color_gradient(low = "blue", high = "red") +
+  geom_smooth(se = FALSE, color = "black") +
+  labs(x = "Mean Minimum Temperature (°F)", y = "Mosquito Count",
+       color = "Number of Mosquitoes Positive for WNV") 
+
+# precip mean
+ggplot(all_data, aes(x = precip_mean, 
+                     y = total_no_mos, color = pos_mos_no)) +
+  geom_point() +
+  scale_color_gradient(low = "blue", high = "red") +
+  geom_smooth(se = FALSE, color = "black") +
+  labs(x = "Mean Precipitation (inches)", y = "Mosquito Count",
+       color = "Mosquitoes Positive for WNV") 
+
+
+
 ```
 
 
