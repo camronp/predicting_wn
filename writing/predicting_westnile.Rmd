@@ -382,17 +382,77 @@ mae(model = tree_fit_all, data = all_data)
 forest_fit_all <- randomForest(prop_pos_mos ~ precip_mean + avg_soil_t_4 + avg_soil_t_2 + week + avg_temp,
   	data = all_data, importance = TRUE)
 
-#average temp
-ggplot(all_data, aes(x = avg_temp, y = total_no_mos, color = pos_mos_no)) +
-  geom_point() +
-  scale_color_brewer(palette = "YlOrRd",
-                     name = "Number of Positive Mosquitos") +
-  geom_smooth(se = FALSE) 
-
 # get the mean average error for our model
 mae(model = forest_fit_all, data = all_data)
 ```
 
+```{r}
+#average temp
+ggplot(all_data, aes(x = avg_temp, 
+                     y = total_no_mos, color = pos_mos_no)) +
+  geom_point() +
+  scale_color_gradient(low = "blue", high = "red") +
+  geom_smooth(se = FALSE, color = "black") +
+  labs(x = "Mean Temperature (°F)", y = "Mosquito Count",
+       color = "Number of Mosquitoes Positive for WNV")
+
+#avg soil temp 4 inch
+ggplot(all_data, aes(x = avg_soil_t_4, 
+                     y = total_no_mos, color = pos_mos_no)) +
+  geom_point() +
+  scale_color_gradient(low = "blue", high = "red") +
+  geom_smooth(se = FALSE, color = "black") +
+  labs(x = "Mean Soil Temperature, 4 inch (°F)", y = "Mosquito Count",
+       color = "Number of Mosquitoes Positive for WNV")
+
+# avg soil temp 2 inch
+ggplot(all_data, aes(x = avg_soil_t_2, 
+                     y = total_no_mos, color = pos_mos_no)) +
+  geom_point() +
+  scale_color_gradient(low = "blue", high = "red") +
+  geom_smooth(se = FALSE, color = "black") +
+  labs(x = "Mean Soil Temperature, 2 inch (°F)", y = "Mosquito Count",
+       color = "Number of Mosquitoes Positive for WNV") 
+
+# wind
+ggplot(all_data, aes(x = WDMV, 
+                     y = total_no_mos, color = pos_mos_no)) +
+  geom_point() +
+  scale_color_gradient(low = "blue", high = "red") +
+  geom_smooth(se = FALSE, color = "black") +
+  labs(x = "Max 24-h Wind Movement (miles)", y = "Mosquito Count",
+       color = "Number of Mosquitoes Positive for WNV") 
+
+# mean max temp
+ggplot(all_data, aes(x = TMAX_avg, 
+                     y = total_no_mos, color = pos_mos_no)) +
+  geom_point() +
+  scale_color_gradient(low = "blue", high = "red") +
+  geom_smooth(se = FALSE, color = "black") +
+  labs(x = "Mean Maximum Temperature (°F)", y = "Mosquito Count",
+       color = "Number of Mosquitoes Positive for WNV") 
+
+# average min temp
+ggplot(all_data, aes(x = TMIN_avg, 
+                     y = total_no_mos, color = pos_mos_no)) +
+  geom_point() +
+  scale_color_gradient(low = "blue", high = "red") +
+  geom_smooth(se = FALSE, color = "black") +
+  labs(x = "Mean Minimum Temperature (°F)", y = "Mosquito Count",
+       color = "Number of Mosquitoes Positive for WNV") 
+
+# precip mean
+ggplot(all_data, aes(x = precip_mean, 
+                     y = total_no_mos, color = pos_mos_no)) +
+  geom_point() +
+  scale_color_gradient(low = "blue", high = "red") +
+  geom_smooth(se = FALSE, color = "black") +
+  labs(x = "Mean Precipitation (inches)", y = "Mosquito Count",
+       color = "Mosquitoes Positive for WNV") 
+
+
+
+```
 
 
 
