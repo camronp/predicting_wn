@@ -192,7 +192,7 @@ all_data <- left_join(final_mosquito, storm_events, by = c("year", "week")) %>%
 
 First we had to find the data we wanted to use from various sources. We then had to clean the data and modify it to a point where we could use it for what we had planned to do. We then wanted to examine the relationships among the variables. For this, we used a correlation plot. Our correlation plot indicates that there is a negative association between the number of positive WNV mosquitos and average soil temperature in 4 inch sod, average soil temperature in 2 inch bare soil, average temperature, and mean precipitation.  
 
-```{r preliminary visualization, echo = FALSE}
+```{r preliminary visualization, echo = FALSE, message = FALSE}
 
 #average temp
 ggplot(all_data, aes(x = avg_temp, 
