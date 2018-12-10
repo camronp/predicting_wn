@@ -22,6 +22,7 @@ library(leaflet)
 library(viridisLite)
 library(tidyr)
 library(rnoaa)
+library(corrr)
 library(corrplot)
 library(mfp)
 library(ggplot2)
@@ -70,7 +71,6 @@ head(final_mosquito)
   
 ```
 
-
 Read in and clean storm data
 ```{r storm data, message = FALSE}
 storms_2016 <- read_csv("../data/StormEvents_details-ftp_v1.0_d2016_c20180718.csv") 
@@ -94,50 +94,6 @@ head(all_storm)
 
 #Remove double events 
 storm_events <- unique(all_storm[c("year", "week", "event_type")])
-  
-```
-
-Add interactive feature with number of positive or negative mosquitos found
-Can use to see the locations where more positive mosquitoes are found
-```{r leaflet, warning = FALSE}
-
-# find the total # mosquitoes collected each week
-mosquito_data_tot_leaf <- mosquito_data %>%
-  group_by(latitude, longitude) %>%
-  summarise(total_no_mos = sum(number_mosquitos))
-
-
-# find the sum of the # of positive mosquitoes collected each week
-positive_mosquito_leaf <- mosquito_data %>%
-  group_by(latitude, longitude) %>%
-  filter(result == "positive") %>%
-  summarise(pos_mos_no = sum(number_mosquitos))
-
-# join the positive mosquitoes and total # of mosquitoes and calculate the proportion of positive mosquitoes collected each week 
-final_mosquito_leaf <- mosquito_data_tot_leaf %>%
-  full_join(positive_mosquito_leaf) %>%
-  mutate_if(is.integer, funs(replace(., is.na(.), 0))) %>%
-  mutate(prop_pos_mos = pos_mos_no / total_no_mos) %>%
-  select(latitude, longitude, pos_mos_no, total_no_mos, prop_pos_mos)
-
-# create popup info for 
-popup_info <- paste0("<b>Proportion WNV mosquitoes<b>", round(final_mosquito_leaf$prop_pos_mos, digits = 2))
-
-# create colors for map
-pal <- colorNumeric(
-  palette = viridis(7),
-  domain = final_mosquito_leaf$prop_pos_mos)
-  
-# develop leaflet
-leaflet(data = final_mosquito_leaf) %>%
-  addTiles() %>%
-  addCircleMarkers(data = final_mosquito_leaf, radius = ~prop_pos_mos*10,
-                   lng = ~longitude, lat = ~latitude, 
-                   color = ~pal(prop_pos_mos),
-                   group = "mosquito", popup = popup_info)  %>%
-  addLegend(pal = pal, values = ~prop_pos_mos, opacity = 0.9, title = "proportion \n WNV mosquitoes") 
-
-
   
 ```
 
@@ -248,6 +204,48 @@ head(all_data_wo_storm)
 
 ```
 
+# Correlation Plots
+Correlation matrix using correlogram 
+Looks at different types of correlograms to visualize data
+
+```{r fig.width =7, fig.height = 7}
+
+# Remove columns with character values and make pretty label names
+data_wo_char <- all_data %>%
+  select(-event_type, -year, -TMIN_avg, -TMAX_avg, -WDMV) %>%
+  rename("# of WNV mosquitoes"= pos_mos_no,
+         "total # of mosquitoes" = total_no_mos,
+         "ratio of WNV mosquitoes" = prop_pos_mos,
+         "average 4 inch soil temp" = avg_soil_t_4,
+         "average 2 inch soil temp" = avg_soil_t_2,
+         "average temp" = avg_temp,
+         "average precipitation" = precip_mean)
+
+correlation <- cor(data_wo_char)
+
+corrplot(correlation, method = "number", "upper", 
+         title = "Variable Correlation Plot",
+         mar=c(0,0,2,0))
+
+```
+
+Correlation graphs
+```{r}
+
+data_wo_char %>% 
+    correlate() %>% 
+  network_plot(min_cor = .2)
+
+
+
+data_wo_char %>% 
+  correlate() %>% 
+  rearrange() %>% 
+  shave() %>% 
+  fashion()
+```
+
+# Visual Representations of Data
 Plot proportion of positive mosquitoes
  
 ```{r}
@@ -256,16 +254,55 @@ new_mos<- mosquito_data %>%
   group_by(week, year, result) %>%
   summarise(no_mos = sum(number_mosquitos))
 
-pos_plus_all <- full_join(new_mos, all_data) %>%
-  filter(year == 2016)
-
-ggplot(pos_plus_all, aes(x = week, y = no_mos, fill = result)) +
+ggplot(new_mos, aes(x = week, y = no_mos, fill = result)) +
   geom_bar(stat = "identity") +
-  labs(x = "Week of 2016", y = "Number of collected mosquitoes") +
-  ggtitle("Positive West Nile Virus Mosquitoes 2016")
+  labs(x = "Week of year", y = "Number of collected mosquitoes") +
+  ggtitle("Positive West Nile Virus Mosquitoes 2016 - 2018")
 
 
 ```
+
+Leaflet map of where mosquitoes are found and the proportion of WNV mosquitoes
+```{r leaflet, warning = FALSE}
+
+# find the total # mosquitoes collected each week
+mosquito_data_tot_leaf <- mosquito_data %>%
+  group_by(latitude, longitude) %>%
+  summarise(total_no_mos = sum(number_mosquitos))
+
+
+# find the sum of the # of positive mosquitoes collected each week
+positive_mosquito_leaf <- mosquito_data %>%
+  group_by(latitude, longitude) %>%
+  filter(result == "positive") %>%
+  summarise(pos_mos_no = sum(number_mosquitos))
+
+# join the positive mosquitoes and total # of mosquitoes and calculate the proportion of positive mosquitoes collected each week 
+final_mosquito_leaf <- mosquito_data_tot_leaf %>%
+  full_join(positive_mosquito_leaf) %>%
+  mutate_if(is.integer, funs(replace(., is.na(.), 0))) %>%
+  mutate(prop_pos_mos = pos_mos_no / total_no_mos) %>%
+  select(latitude, longitude, pos_mos_no, total_no_mos, prop_pos_mos)
+
+# create popup info for 
+popup_info <- paste0("<b>Proportion WNV mosquitoes<b>", round(final_mosquito_leaf$prop_pos_mos, digits = 2))
+
+# create colors for map
+pal <- colorNumeric(
+  palette = viridis(7),
+  domain = final_mosquito_leaf$prop_pos_mos)
+  
+# develop leaflet
+leaflet(data = final_mosquito_leaf) %>%
+  addTiles() %>%
+  addCircleMarkers(data = final_mosquito_leaf, radius = ~prop_pos_mos*10,
+                   lng = ~longitude, lat = ~latitude, 
+                   color = ~pal(prop_pos_mos),
+                   group = "mosquito", popup = popup_info)  %>%
+  addLegend(pal = pal, values = ~prop_pos_mos, opacity = 0.9, title = "proportion \n WNV mosquitoes") 
+
+```
+
 
 # Prediction Models
 
@@ -279,14 +316,15 @@ test_all_data <- all_data %>%
 ```
 
 
-## Linear Model
+## Multivariate fractional polynomial and linear model
 
-Build multivariable fractional polynomial prediction model for proportion of positive mosquitos
+Build multivariate fractional polynomial prediction model for proportion of positive mosquitos
 
 ```{r}
 
 # input the variables we believe to be predictive
-equation_test <- formula(prop_pos_mos ~ fp(week) +fp(avg_temp) + fp(precip_mean) + fp(avg_soil_t_4) + fp(avg_soil_t_2) )
+equation_test <- formula(prop_pos_mos ~ fp(week) +fp(avg_temp) + fp(precip_mean) + 
+                           fp(avg_soil_t_4) + fp(avg_soil_t_2) )
 
 # multivariate fractional polynomials will determine to what power each variable should be multiplied
 mfp_testing <- mfp(equation_test, data = train_all_data, select = 0.05)
@@ -303,28 +341,26 @@ summary(linear_fit)
 predict.lm(linear_fit, data_frame(precip_mean = 0.078, avg_soil_t_4 = 72.1, avg_soil_t_2 = 200, week = 34, avg_temp = 75))
 
 
-
 # get the mean average error fo the linear model
 mae(model = linear_fit, data = test_all_data)
 ```
 
-## Regression Tree MOdel
+## Regression Tree Model
 
 ```{r}
 
-equation_test <- formula(prop_pos_mos ~ fp(precip_mean) + fp(avg_soil_t_4) + fp(avg_soil_t_2) + fp(week) +fp(avg_temp) + fp(WDMV))
+equation_test <- formula(prop_pos_mos ~ fp(precip_mean) + fp(avg_soil_t_4) + fp(avg_soil_t_2) 
+                         + fp(week) +fp(avg_temp))
 
 # build regression tree model
-tree_fit <- rpart(prop_pos_mos ~ precip_mean + avg_soil_t_4 + avg_soil_t_2 + week + avg_temp,
-  	method="class", data = train_all_data)
+tree_fit1 <- rpart(prop_pos_mos ~ precip_mean + avg_soil_t_4 + avg_soil_t_2 + week + avg_temp,
+  	method="class", data = train_all_data, cp = 0.01)
 
 printcp(tree_fit) # display the results 
 summary(tree_fit) # detailed summary of splits
-#importance(tree_fit)
 
 # get the mean average error for our model
 mae(model = tree_fit, data = test_all_data)
-
 
 # plot decision tree 
 prp(tree_fit, main="Classification Tree for Predicting Proportion of Positive Mosquitoes", fallen.leaves = TRUE)
@@ -386,6 +422,8 @@ forest_fit_all <- randomForest(prop_pos_mos ~ precip_mean + avg_soil_t_4 + avg_s
 # get the mean average error for our model
 mae(model = forest_fit_all, data = all_data)
 ```
+
+
 
 ```{r}
 #average temp
@@ -512,43 +550,7 @@ ggplot(all_data, aes(x = precip_mean,
 ```
 
 
-Correlation matrix using correlogram 
-Looks at different types of correlograms to visualize data
-
-```{r fig.width =7, fig.height = 7}
-
-# Remove columns with character values and malke pretty label names
-data_wo_char <- all_data %>%
-  select(-event_type, -year, -TMIN_avg, -TMAX_avg, -max_wind) %>%
-  rename("# of WNV mosquitoes"= pos_mos_no,
-         "total # of mosquitoes" = total_no_mos,
-         "ratio of WNV mosquitoes" = prop_pos_mos,
-         "average 4 inch soil temp" = avg_soil_t_4,
-         "average 2 inch soil temp" = avg_soil_t_2,
-         "average temp" = avg_temp,
-         "average precipitation" = precip_mean)
-
-correlation <- cor(data_wo_char)
-
-corrplot(correlation, method = "number", "upper", 
-         title = "Variable Correlation Plot",
-         mar=c(0,0,2,0))
-
-```
-
-
-```{r}
-library(corrr)
-
-data_wo_char %>% 
-    correlate() %>% 
-  network_plot(min_cor = .2)
 
 
 
-data_wo_char %>% 
-  correlate() %>% 
-  rearrange() %>% 
-  shave() %>% 
-  fashion()
-```
+
