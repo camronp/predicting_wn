@@ -211,7 +211,7 @@ Looks at different types of correlograms to visualize data
 
 # Remove columns with character values and make pretty label names
 data_wo_char <- all_data %>%
-  select(-event_type, -year, -TMIN_avg, -TMAX_avg, -max_wind) %>%
+  select(-event_type, -year, -TMIN_avg, -TMAX_avg, -WDMV) %>%
   rename("# of WNV mosquitoes"= pos_mos_no,
          "total # of mosquitoes" = total_no_mos,
          "ratio of WNV mosquitoes" = prop_pos_mos,
@@ -348,7 +348,8 @@ mae(model = linear_fit, data = test_all_data)
 
 ```{r}
 
-equation_test <- formula(prop_pos_mos ~ fp(precip_mean) + fp(avg_soil_t_4) + fp(avg_soil_t_2) + fp(week) +fp(avg_temp) + fp(WDMV))
+equation_test <- formula(prop_pos_mos ~ fp(precip_mean) + fp(avg_soil_t_4) + fp(avg_soil_t_2) 
+                         + fp(week) +fp(avg_temp))
 
 # build regression tree model
 tree_fit1 <- rpart(prop_pos_mos ~ precip_mean + avg_soil_t_4 + avg_soil_t_2 + week + avg_temp,
@@ -356,12 +357,9 @@ tree_fit1 <- rpart(prop_pos_mos ~ precip_mean + avg_soil_t_4 + avg_soil_t_2 + we
 
 printcp(tree_fit) # display the results 
 summary(tree_fit) # detailed summary of splits
-#importance(tree_fit)
-
 
 # get the mean average error for our model
 mae(model = tree_fit, data = test_all_data)
-
 
 # plot decision tree 
 prp(tree_fit, main="Classification Tree for Predicting Proportion of Positive Mosquitoes", fallen.leaves = TRUE)
@@ -423,6 +421,8 @@ forest_fit_all <- randomForest(prop_pos_mos ~ precip_mean + avg_soil_t_4 + avg_s
 # get the mean average error for our model
 mae(model = forest_fit_all, data = all_data)
 ```
+
+
 
 ```{r}
 #average temp
