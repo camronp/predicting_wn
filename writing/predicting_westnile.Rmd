@@ -212,14 +212,15 @@ Looks at different types of correlograms to visualize data
 
 # Remove columns with character values and make pretty label names
 data_wo_char <- all_data %>%
-  select(-event_type, -year, -TMIN_avg, -TMAX_avg, -WDMV) %>%
+  select(-event_type, -year, -TMIN_avg, -TMAX_avg) %>%
   rename("# of WNV mosquitoes"= pos_mos_no,
          "total # of mosquitoes" = total_no_mos,
          "ratio of WNV mosquitoes" = prop_pos_mos,
          "average 4 inch soil temp" = avg_soil_t_4,
          "average 2 inch soil temp" = avg_soil_t_2,
          "average temp" = avg_temp,
-         "average precipitation" = precip_mean)
+         "average precipitation" = precip_mean,
+         "max wind" = WDMV)
 
 correlation <- cor(data_wo_char)
 
@@ -324,7 +325,7 @@ Build multivariate fractional polynomial prediction model for proportion of posi
 
 # input the variables we believe to be predictive
 equation_test <- formula(prop_pos_mos ~ fp(week) +fp(avg_temp) + fp(precip_mean) + 
-                           fp(avg_soil_t_4) + fp(avg_soil_t_2) )
+                           fp(avg_soil_t_4) + fp(avg_soil_t_2) + fp(WDMV))
 
 # multivariate fractional polynomials will determine to what power each variable should be multiplied
 mfp_testing <- mfp(equation_test, data = train_all_data, select = 0.05)
@@ -349,11 +350,8 @@ mae(model = linear_fit, data = test_all_data)
 
 ```{r}
 
-equation_test <- formula(prop_pos_mos ~ fp(precip_mean) + fp(avg_soil_t_4) + fp(avg_soil_t_2) 
-                         + fp(week) +fp(avg_temp))
-
 # build regression tree model
-tree_fit1 <- rpart(prop_pos_mos ~ precip_mean + avg_soil_t_4 + avg_soil_t_2 + week + avg_temp,
+tree_fit1 <- rpart(prop_pos_mos ~ precip_mean + avg_soil_t_4 + avg_soil_t_2 + week + avg_temp + WDMV,
   	method="class", data = train_all_data, cp = 0.01)
 
 printcp(tree_fit) # display the results 
@@ -373,7 +371,7 @@ Plot variable importance
 ```{r}
 
 # build random forest prediction model
-forest_fit <- randomForest(prop_pos_mos ~ precip_mean + avg_soil_t_4 + avg_soil_t_2 + week + avg_temp,
+forest_fit <- randomForest(prop_pos_mos ~ precip_mean + avg_soil_t_4 + avg_soil_t_2 + week + avg_temp + WDMV,
   	data = train_all_data, importance = TRUE)
 
 # get the mean average error for our model
@@ -399,7 +397,7 @@ ggplot(impor_var, aes(x = reorder(variables, -MSE), y = MSE, fill = variables)) 
   xlab("Variables") +
   ggtitle("Importance of Random Forest Variables")
 
-forest_pre <- predict(forest_fit, data_frame(precip_mean = 0.078, avg_soil_t_4 = 72.1, avg_soil_t_2 = 200, week = 34, avg_temp = 75), type = "class")
+forest_pre <- predict(forest_fit, data_frame(precip_mean = 0.078, avg_soil_t_4 = 72.1, avg_soil_t_2 = 200, week = 34, avg_temp = 75, WDMV = 5), type = "class")
 
 ```
 
@@ -416,14 +414,14 @@ linear_fit_all <- lm(mfp_testing_all$formula, all_data)
 mae(model = linear_fit_all, data = all_data)
 
 # build regression tree model
-tree_fit_all <- rpart(prop_pos_mos ~ precip_mean + avg_soil_t_4 + avg_soil_t_2 + week + avg_temp,
+tree_fit_all <- rpart(prop_pos_mos ~ precip_mean + avg_soil_t_4 + avg_soil_t_2 + week + avg_temp + WDMV,
   	method="class", data = all_data)
 
 # get the mean average error for our model
 mae(model = tree_fit_all, data = all_data)
 
 # build random forest prediction model
-forest_fit_all <- randomForest(prop_pos_mos ~ precip_mean + avg_soil_t_4 + avg_soil_t_2 + week + avg_temp,
+forest_fit_all <- randomForest(prop_pos_mos ~ precip_mean + avg_soil_t_4 + avg_soil_t_2 + week + avg_temp + WDMV,
   	data = all_data, importance = TRUE)
 
 # get the mean average error for our model
