@@ -260,6 +260,8 @@ The random forest model, the mean average error for the proportion of positive m
 
 There was a large number of positive WNV tested mosquitos the 30th week of 2016. The dates for this time were July 25th through July 31st. The precipitation mean during that time was 0.467 inches. There is a negative association between the average soil temperatures (in both 2 inch bare soil and in 4 inch sod) and precipitation.   
 
+WNV incidence goes up if the daily high temperature in the spring and early summer is warmer than 81 degrees more often than normal (ScienceNetLinks, 2018). This is because **Culex pipiens** will peak earlier and thus more WNV cases. 
+
 For the prediction models it was also interesting that each of the models chose different variables that they deemed important in predicting the proportion of positive mosquitoes.
 
 # How project fits into West Nile research
@@ -287,3 +289,5 @@ We also had a hard time conceptualizing exactly what we wanted to predict. We st
 ### References:
 
 Centers for Disease Control and Prevention (CDC). West Nile virus. November 28, 2018. Retrieved from: https://www.cdc.gov/westnile/index.html
+
+ScienceNetLInks. West Nile Weather. December 10, 2018. Retrieved from: http://sciencenetlinks.com/science-news/science-updates/west-nile-weather/
