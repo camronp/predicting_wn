@@ -70,24 +70,6 @@ head(final_mosquito)
   
 ```
 
-Plot proportion of positive mosquitoes
- 
-```{r}
-
-new_mos<- mosquito_data %>%
-  group_by(week, year, result) %>%
-  summarise(no_mos = sum(number_mosquitos))
-
-pos_plus_all <- full_join(new_mos, all_data) %>%
-  filter(year == 2016)
-
-ggplot(pos_plus_all, aes(x = week, y = no_mos, fill = result)) +
-  geom_bar(stat = "identity") +
-  labs(x = "Week of 2016", y = "Number of collected mosquitoes") +
-  ggtitle("Positive West Nile Virus Mosquitoes 2016")
-
-
-```
 
 Read in and clean storm data
 ```{r storm data, message = FALSE}
@@ -218,24 +200,15 @@ weather_data <-
   mutate(TMAX_avg = mean(TMAX, na.rm = TRUE)) %>% 
   mutate(TMIN_avg = mean(TMIN, na.rm = TRUE)) %>% 
   mutate(avg_temp = (TMIN_avg + TMAX_avg)/2) %>% 
-<<<<<<< HEAD
   mutate(WDMV = max(WDMV, na.rm = TRUE)) %>% 
-=======
-  mutate(max_wind = max(WDMV, na.rm = TRUE )) %>% 
->>>>>>> 2eab0b4b147e655574b2f475339b8e70a1a34d48
   select(-TOBS, -date, -SN32, -SN52, -SX32, -SX52, -station, -name,
-         -TMAX, -TMIN, -WDMV) %>% 
+         -TMAX, -TMIN) %>% 
   arrange(year, week) %>%
   filter(row_number() == 1) %>% 
   ungroup()
-<<<<<<< HEAD
-
-data <- data_frame(year = 2017, week = seq(1,52,1))
 
 weather_data[, c("week", "year", "TMIN_avg", "TMAX_avg", "avg_temp", "WDMV")]
-=======
->>>>>>> 2eab0b4b147e655574b2f475339b8e70a1a34d48
-  
+
 head(weather_data)
 
 precip_data <- read_csv("../data/precip.csv") %>% 
@@ -255,10 +228,11 @@ head(precip_data)
 
 
 Join all of the datasets together
-We're not sure why we can't 
+
 ```{r}
 
-all_data <- left_join(final_mosquito, storm_events, by = c("year", "week")) %>%
+all_data <- left_join(final_mosquito, storm_events, 
+                      by = c("year", "week")) %>%
             left_join(all_soil_temps, by =  c("year", "week")) %>%
             left_join(weather_data, by =  c("year", "week")) %>% 
             left_join(precip_data, by =  c("year", "week"))
@@ -269,9 +243,28 @@ all_data_wo_storm <- left_join(final_mosquito, all_soil_temps, by = c("year", "w
             left_join(weather_data, by =  c("year", "week")) %>% 
             left_join(precip_data, by =  c("year", "week"))
 
+head(all_data_wo_storm)
+
 ```
 
+Plot proportion of positive mosquitoes
+ 
+```{r}
 
+new_mos<- mosquito_data %>%
+  group_by(week, year, result) %>%
+  summarise(no_mos = sum(number_mosquitos))
+
+pos_plus_all <- full_join(new_mos, all_data) %>%
+  filter(year == 2016)
+
+ggplot(pos_plus_all, aes(x = week, y = no_mos, fill = result)) +
+  geom_bar(stat = "identity") +
+  labs(x = "Week of 2016", y = "Number of collected mosquitoes") +
+  ggtitle("Positive West Nile Virus Mosquitoes 2016")
+
+
+```
 
 # Prediction Models
 
@@ -318,13 +311,11 @@ mae(model = linear_fit, data = test_all_data)
 
 ```{r}
 
-<<<<<<< HEAD
 equation_test <- formula(prop_pos_mos ~ fp(precip_mean) + fp(avg_soil_t_4) + fp(avg_soil_t_2) + fp(week) +fp(avg_temp) + fp(WDMV))
-=======
+
 # build regression tree model
 tree_fit <- rpart(prop_pos_mos ~ precip_mean + avg_soil_t_4 + avg_soil_t_2 + week + avg_temp,
   	method="class", data = train_all_data)
->>>>>>> 2eab0b4b147e655574b2f475339b8e70a1a34d48
 
 printcp(tree_fit) # display the results 
 summary(tree_fit) # detailed summary of splits
@@ -391,19 +382,17 @@ mae(model = tree_fit_all, data = all_data)
 forest_fit_all <- randomForest(prop_pos_mos ~ precip_mean + avg_soil_t_4 + avg_soil_t_2 + week + avg_temp,
   	data = all_data, importance = TRUE)
 
-<<<<<<< HEAD
 #average temp
 ggplot(all_data, aes(x = avg_temp, y = total_no_mos, color = pos_mos_no)) +
   geom_point() +
   scale_color_brewer(palette = "YlOrRd",
                      name = "Number of Positive Mosquitos") +
   geom_smooth(se = FALSE) 
-  
-=======
+
 # get the mean average error for our model
 mae(model = forest_fit_all, data = all_data)
 ```
->>>>>>> 2eab0b4b147e655574b2f475339b8e70a1a34d48
+
 
 
 
