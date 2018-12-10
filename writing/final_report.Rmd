@@ -91,9 +91,10 @@ weather_data <-
   mutate(TMAX_avg = mean(TMAX, na.rm = TRUE)) %>% 
   mutate(TMIN_avg = mean(TMIN, na.rm = TRUE)) %>% 
   mutate(avg_temp = (TMIN_avg + TMAX_avg)/2) %>% 
-  mutate(max_wind = max(WDMV, na.rm = TRUE )) %>% 
+  mutate(WDMV = as.numeric(WDMV)) %>% 
+  mutate(WDMV = max(WDMV, na.rm = TRUE )) %>% 
   select(-TOBS, -date, -SN32, -SN52, -SX32, -SX52, -station, -name,
-         -TMAX, -TMIN, -WDMV) %>% 
+         -TMAX, -TMIN) %>% 
   arrange(year, week) %>%
   filter(row_number() == 1) %>% 
   ungroup()
@@ -191,11 +192,83 @@ all_data <- left_join(final_mosquito, storm_events, by = c("year", "week")) %>%
 
 First we had to find the data we wanted to use from various sources. We then had to clean the data and modify it to a point where we could use it for what we had planned to do. We then wanted to examine the relationships among the variables. For this, we used a correlation plot. Our correlation plot indicates that there is a negative association between the number of positive WNV mosquitos and average soil temperature in 4 inch sod, average soil temperature in 2 inch bare soil, average temperature, and mean precipitation.  
 
+```{r preliminary visualization, echo = FALSE}
+
+#average temp
+ggplot(all_data, aes(x = avg_temp, 
+                     y = total_no_mos, color = pos_mos_no)) +
+  geom_point() +
+  scale_color_gradient(low = "blue", high = "red") +
+  geom_smooth(se = FALSE, color = "black") +
+  labs(x = "Mean Temperature (°F)", y = "Mosquito Count",
+       color = "Mosquitoes \nPositive for WNV") 
+
+
+#avg soil temp 4 inch
+ggplot(all_data, aes(x = avg_soil_t_4, 
+                     y = total_no_mos, color = pos_mos_no)) +
+  geom_point() +
+  scale_color_gradient(low = "blue", high = "red") +
+  geom_smooth(se = FALSE, color = "black") +
+  labs(x = "Mean Soil Temperature, 4 inch (°F)", y = "Mosquito Count",
+         color = "Mosquitoes \nPositive for WNV")
+
+
+# avg soil temp 2 inch
+ggplot(all_data, aes(x = avg_soil_t_2, 
+                     y = total_no_mos, color = pos_mos_no)) +
+  geom_point() +
+  scale_color_gradient(low = "blue", high = "red") +
+  geom_smooth(se = FALSE, color = "black") +
+  labs(x = "Mean Soil Temperature, 2 inch (°F)", y = "Mosquito Count",
+       color = "Mosquitoes \nPositive for WNV") 
+
+# wind
+ggplot(all_data, aes(x = WDMV, 
+                     y = total_no_mos, color = pos_mos_no)) +
+  geom_point() +
+  scale_color_gradient(low = "blue", high = "red") +
+  geom_smooth(se = FALSE, color = "black") +
+  labs(x = "Max 24-h Wind Movement (miles)", y = "Mosquito Count",
+       color = "Mosquitoes \nPositive for WNV")
+
+# mean max temp
+ggplot(all_data, aes(x = TMAX_avg, 
+                     y = total_no_mos, color = pos_mos_no)) +
+  geom_point() +
+  scale_color_gradient(low = "blue", high = "red") +
+  geom_smooth(se = FALSE, color = "black") +
+  labs(x = "Mean Maximum Temperature (°F)", y = "Mosquito Count",
+       color = "Mosquitoes \nPositive for WNV")
+
+
+# average min temp
+ggplot(all_data, aes(x = TMIN_avg, 
+                     y = total_no_mos, color = pos_mos_no)) +
+  geom_point() +
+  scale_color_gradient(low = "blue", high = "red") +
+  geom_smooth(se = FALSE, color = "black") +
+  labs(x = "Mean Minimum Temperature (°F)", y = "Mosquito Count",
+       color = "Mosquitoes \nPositive for WNV")
+
+
+# precip mean
+ggplot(all_data, aes(x = precip_mean, 
+                     y = total_no_mos, color = pos_mos_no)) +
+  geom_point() +
+  scale_color_gradient(low = "blue", high = "red") +
+  geom_smooth(se = FALSE, color = "black") +
+  labs(x = "Mean Precipitation (inches)", y = "Mosquito Count",
+       color = "Mosquitoes \nPositive for WNV")
+
+
+```
+
 ```{r correlation_plot, echo = FALSE, fig.width = 7, fig.height = 7}
 
 # Remove columns with character values and malke pretty label names
 data_wo_char <- all_data %>%
-  select(-event_type, -year, -TMIN_avg, -TMAX_avg, -max_wind) %>%
+  select(-event_type, -year, -TMIN_avg, -TMAX_avg, -WDMV) %>%
   rename("# of WNV mosquitoes"= pos_mos_no,
          "total # of mosquitoes" = total_no_mos,
          "ratio of WNV mosquitoes" = prop_pos_mos,
@@ -274,11 +347,14 @@ We also had a hard time conceptualizing exactly what we wanted to predict. We st
 
 # What we’d do differently
 
-* Decide on what we want to predict quicker
-+ Choose something easy  
 * Contact Public Health Departments or other entities at the beginning for access to data
 * Really understand prediction models in R
-* Create document where we record the changes made and by whom
+* Come up with an idea for a prediction model earlier
+* Create a "records" document to track changes
+* Changes and additions to the Shiny app
+* Use sepearate "testing" notation for markdown chunks
+* Annotate code more often
+* Overall better communication
 
 	
 ### References:
