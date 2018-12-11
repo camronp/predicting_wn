@@ -212,14 +212,14 @@ temp_prop <- ggplot(all_data, aes(x = avg_temp,
   scale_color_gradient(low = "blue", high = "red", labels = comma) +
   scale_y_continuous(labels = comma) +
   geom_smooth(se = FALSE, color = "black") +
-  labs(x = "Mean Temperature (°F)", y = "Proportion of Positive Mosquitoes",
+  labs(x = "Mean Temperature (°F)", y = "Proportion of \nPositive Mosquitoes",
        color = "# Mosquitoes \nPositive for WNV") 
 
 grid.arrange(temp_count, temp_prop, nrow = 2)
 
 
 #avg soil temp 4 inch
-ggplot(all_data, aes(x = avg_soil_t_4, 
+soil_4 <- ggplot(all_data, aes(x = avg_soil_t_4, 
                      y = total_no_mos, color = pos_mos_no)) +
   geom_point() +
   scale_color_gradient(low = "blue", high = "red", labels = comma) +
@@ -228,21 +228,8 @@ ggplot(all_data, aes(x = avg_soil_t_4,
   labs(x = "Mean Soil Temperature, 4 inch (°F)", y = "Mosquito Count",
          color = "# Mosquitoes \nPositive for WNV")
 
-
-# avg soil temp 2 inch
-ggplot(all_data, aes(x = avg_soil_t_2, 
-                     y = total_no_mos, color = pos_mos_no)) +
-  geom_point() +
-  scale_color_gradient(low = "blue", high = "red", labels = comma) +
-  scale_y_continuous(labels = comma) +
-  geom_smooth(se = FALSE, color = "black") +
-  labs(x = "Mean Soil Temperature, 2 inch (°F)", y = "Mosquito Count",
-       color = "# Mosquitoes \nPositive for WNV") 
-
-
-
 # precip mean
-ggplot(all_data, aes(x = precip_mean, 
+precip_plot <- ggplot(all_data, aes(x = precip_mean, 
                      y = total_no_mos, color = pos_mos_no)) +
   geom_point() +
   scale_color_gradient(low = "blue", high = "red", labels = comma) +
@@ -251,8 +238,13 @@ ggplot(all_data, aes(x = precip_mean,
   labs(x = "Mean Precipitation (inches)", y = "Mosquito Count",
        color = "# Mosquitoes \nPositive for WNV")
 
+grid.arrange(precip_plot, soil_4, nrow = 2)
 
 ```
+
+We wanted to use the proportion of positive mosquitoes collected in our prediction model rather than count of positive mosquitoes to remove some of the collection bias in the 2016 data where there was increased funding to evaluate WNV mosquitoes.
+
+To build a prediction model for proportion of positive mosquitos, we tested three type of models: a linear prediction model, a regression tree, and random forest. For the models, we split the data into 2 sections: the first would contains the data collected from 2016 and 2017 to train the datasets, and the second contains the 2018 data to test the accuracy of the models.
 
 ```{r correlation_plot, echo = FALSE, fig.width = 7, fig.height = 7}
 
@@ -274,9 +266,6 @@ corrplot(correlation, method = "number", "upper",
          mar=c(0,0,2,0))
 ```
 
-We wanted to use the proportion of positive mosquitoes collected in our prediction model rather than count of positive mosquitoes to remove some of the collection bias in the 2016 data where there was increased funding to evaluate WNV mosquitoes.
-
-To build a prediction model for proportion of positive mosquitos, we tested three type of models: a linear prediction model, a regression tree, and random forest. For the models, we split the data into 2 sections: the first would contains the data collected from 2016 and 2017 to train the datasets, and the second contains the 2018 data to test the accuracy of the models.
 
 ```{r splitting_data, echo = FALSE, message = FALSE, warning = FALSE}
 train_all_data <- all_data %>%
@@ -301,7 +290,7 @@ linear_fit <- lm(mfp_testing$formula, train_all_data)
 ```
 The mean average error for the proportion of positive mosquitoes for the linear model was also calculated to be `r mae(model = linear_fit, data = test_all_data)`.  
 
-Decision tree learning looks at multiple observations to predict a conclusion based off of yes/no decisions about the data. 
+Decision tree learning looks at multiple observations to predict a conclusion based off of yes/no decisions about the data.  
 ```{r regression_tree, echo = FALSE, message = FALSE, warning = FALSE}
 tree_fit <- rpart(prop_pos_mos ~ precip_mean + avg_soil_t_4 + avg_soil_t_2 + week + avg_temp,
   	method="class", data = train_all_data)
@@ -310,7 +299,7 @@ tree_fit <- rpart(prop_pos_mos ~ precip_mean + avg_soil_t_4 + avg_soil_t_2 + wee
 prp(tree_fit, main="Classification Tree for Predicting Proportion of Positive Mosquitoes",
     fallen.leaves = TRUE, varlen = 11, digits = 2)	
 ```
-For the regression tree model, the mean average error for the proportion of positive mosquitoes is be `r mae(model = tree_fit, data = test_all_data)`  
+For the regression tree model, the mean average error for the proportion of positive mosquitoes is be `r mae(model = tree_fit, data = test_all_data)`.  
 
 Random Forest is similar to decision trees, but it is more robust in that it creates many trees (in the case of our model, 500) and uses the mean prediction of all of the trees to predict an outcome. 
 ```{r random_forest, echo = FALSE, message = FALSE, warning = FALSE}
@@ -320,7 +309,7 @@ forest_fit <- randomForest(prop_pos_mos ~ precip_mean + avg_soil_t_4 + avg_soil_
   	data = train_all_data, importance = TRUE)
 
 ```
-The random forest model, the mean average error for the proportion of positive mosquitoes is be `r mae(model = forest_fit, data = test_all_data)`
+The random forest model, the mean average error for the proportion of positive mosquitoes is be `r mae(model = forest_fit, data = test_all_data)`.
 
 In the future it would have been interesting to add in our random forest prediction model to our shiny app where the user could input the temperature, precipitation, week, etc. and it would calculate both the expected total number of mosquitoes to be caught that week and the proportion of positive mosquitoes.
 
