@@ -195,15 +195,29 @@ First we had to find the data we wanted to use from various sources. We then had
 
 ```{r preliminary visualization, echo = FALSE, message = FALSE}
 
-#average temp
-ggplot(all_data, aes(x = avg_temp, 
+library(gridExtra)
+
+#average temp by mosquito count
+temp_count <- ggplot(all_data, aes(x = avg_temp, 
                      y = total_no_mos, color = pos_mos_no)) +
   geom_point() +
   scale_color_gradient(low = "blue", high = "red", labels = comma) +
   scale_y_continuous(labels = comma) +
   geom_smooth(se = FALSE, color = "black") +
   labs(x = "Mean Temperature (°F)", y = "Mosquito Count",
-       color = "Mosquitoes \nPositive for WNV") 
+       color = "# Mosquitoes \nPositive for WNV") 
+
+#average temp by proportion
+temp_prop <- ggplot(all_data, aes(x = avg_temp, 
+                     y = prop_pos_mos, color = pos_mos_no)) +
+  geom_point() +
+  scale_color_gradient(low = "blue", high = "red", labels = comma) +
+  scale_y_continuous(labels = comma) +
+  geom_smooth(se = FALSE, color = "black") +
+  labs(x = "Mean Temperature (°F)", y = "Proportion of Positive Mosquitoes",
+       color = "# Mosquitoes \nPositive for WNV") 
+
+grid.arrange(temp_count, temp_prop, nrow = 2)
 
 
 #avg soil temp 4 inch
@@ -214,7 +228,7 @@ ggplot(all_data, aes(x = avg_soil_t_4,
   scale_y_continuous(labels = comma) +
   geom_smooth(se = FALSE, color = "black") +
   labs(x = "Mean Soil Temperature, 4 inch (°F)", y = "Mosquito Count",
-         color = "Mosquitoes \nPositive for WNV")
+         color = "# Mosquitoes \nPositive for WNV")
 
 
 # avg soil temp 2 inch
@@ -225,37 +239,8 @@ ggplot(all_data, aes(x = avg_soil_t_2,
   scale_y_continuous(labels = comma) +
   geom_smooth(se = FALSE, color = "black") +
   labs(x = "Mean Soil Temperature, 2 inch (°F)", y = "Mosquito Count",
-       color = "Mosquitoes \nPositive for WNV") 
+       color = "# Mosquitoes \nPositive for WNV") 
 
-# wind
-ggplot(all_data, aes(x = WDMV, 
-                     y = total_no_mos, color = pos_mos_no)) +
-  geom_point() +
-  scale_color_gradient(low = "blue", high = "red", labels = comma) +
-  scale_y_continuous(labels = comma) +
-  geom_smooth(se = FALSE, color = "black") +
-  labs(x = "Max 24-h Wind Movement (miles)", y = "Mosquito Count",
-       color = "Mosquitoes \nPositive for WNV")
-
-# mean max temp
-ggplot(all_data, aes(x = TMAX_avg, 
-                     y = total_no_mos, color = pos_mos_no)) +
-  geom_point() +
-  scale_color_gradient(low = "blue", high = "red", labels = comma) +
-  scale_y_continuous(labels = comma) +
-  labs(x = "Mean Maximum Temperature (°F)", y = "Mosquito Count",
-       color = "Mosquitoes \nPositive for WNV")
-
-
-# average min temp
-ggplot(all_data, aes(x = TMIN_avg, 
-                     y = total_no_mos, color = pos_mos_no)) +
-  geom_point() +
-  scale_color_gradient(low = "blue", high = "red", labels = comma) +
-  scale_y_continuous(labels = comma) +
-  geom_smooth(se = FALSE, color = "black") +
-  labs(x = "Mean Minimum Temperature (°F)", y = "Mosquito Count",
-       color = "Mosquitoes \nPositive for WNV")
 
 
 # precip mean
@@ -266,7 +251,7 @@ ggplot(all_data, aes(x = precip_mean,
   scale_y_continuous(labels = comma) +
   geom_smooth(se = FALSE, color = "black") +
   labs(x = "Mean Precipitation (inches)", y = "Mosquito Count",
-       color = "Mosquitoes \nPositive for WNV")
+       color = "# Mosquitoes \nPositive for WNV")
 
 
 ```
