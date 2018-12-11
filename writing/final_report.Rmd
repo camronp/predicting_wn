@@ -2,9 +2,7 @@
 title: "Final Project Report - Predicting West Nile"
 author: "Group 3 - Camron Pearce, Amy Fox, Alyssa Melvin, Kayla Williams"
 date: "December 7, 2018"
-output:
-  pdf_document: default
-  html_document: default
+output: pdf_document
 ---
 
 ```{r setup, include=FALSE}
