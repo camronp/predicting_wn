@@ -1,5 +1,5 @@
 ---
-title: "Final Project Report - Predicting West Nile"
+title: "Final Project Report - Predicting West Nile Virus"
 author: "Group 3 - Camron Pearce, Amy Fox, Alyssa Melvin, Kayla Williams"
 date: "December 7, 2018"
 output:
@@ -30,6 +30,7 @@ library(modelr)
 library(rpart)
 library(randomForest)
 library(rpart.plot)
+library(scales)
 ```
 
 
@@ -71,12 +72,12 @@ final_mosquito <- mosquito_data_tot %>%
 final_mosquito_pretty <-  final_mosquito %>%
   rename("# of WNV mosquitoes"= pos_mos_no,
          "total # of mosquitoes" = total_no_mos,
-         "ratio of WNV mosquitoes" = prop_pos_mos)
+         "% mosquitoes with WNV" = prop_pos_mos)
 
 kable(head(final_mosquito_pretty), align = "l")
 ```
 
-When we were researching things that may influence WNV infection of mosquitos, we found a paper that explained soil temperature, precipitation, wind speed, and relative humidity have some sort of association with WNV infected mosquitos in Northern Greece. With that in mind, we chose NOAA weather data. We had quite a few columns which had mostly NAs so we wanted to filter it down to just precipitation for this particular project. We grouped the data by year and week and found the mean precipitation for that week and year. 
+When we were researching things that may influence WNV infection of mosquitos, we found a paper that explained soil temperature, precipitation, wind speed, and relative humidity have some sort of association with WNV infected mosquitos in Northern Greece. With that in mind, we chose Chicago, Illinois NOAA weather data with the parameters described in the paper. We had quite a few columns which had mostly NAs so we wanted to filter it down to just precipitation for this particular project. We grouped the data by year and week and found the mean precipitation for that week and year. 
 
 ```{r weather_data, echo = FALSE, message = FALSE, warning = FALSE}
 weather_data <- 
@@ -198,7 +199,8 @@ First we had to find the data we wanted to use from various sources. We then had
 ggplot(all_data, aes(x = avg_temp, 
                      y = total_no_mos, color = pos_mos_no)) +
   geom_point() +
-  scale_color_gradient(low = "blue", high = "red") +
+  scale_color_gradient(low = "blue", high = "red", labels = comma) +
+  scale_y_continuous(labels = comma) +
   geom_smooth(se = FALSE, color = "black") +
   labs(x = "Mean Temperature (°F)", y = "Mosquito Count",
        color = "Mosquitoes \nPositive for WNV") 
@@ -208,7 +210,8 @@ ggplot(all_data, aes(x = avg_temp,
 ggplot(all_data, aes(x = avg_soil_t_4, 
                      y = total_no_mos, color = pos_mos_no)) +
   geom_point() +
-  scale_color_gradient(low = "blue", high = "red") +
+  scale_color_gradient(low = "blue", high = "red", labels = comma) +
+  scale_y_continuous(labels = comma) +
   geom_smooth(se = FALSE, color = "black") +
   labs(x = "Mean Soil Temperature, 4 inch (°F)", y = "Mosquito Count",
          color = "Mosquitoes \nPositive for WNV")
@@ -218,7 +221,8 @@ ggplot(all_data, aes(x = avg_soil_t_4,
 ggplot(all_data, aes(x = avg_soil_t_2, 
                      y = total_no_mos, color = pos_mos_no)) +
   geom_point() +
-  scale_color_gradient(low = "blue", high = "red") +
+  scale_color_gradient(low = "blue", high = "red", labels = comma) +
+  scale_y_continuous(labels = comma) +
   geom_smooth(se = FALSE, color = "black") +
   labs(x = "Mean Soil Temperature, 2 inch (°F)", y = "Mosquito Count",
        color = "Mosquitoes \nPositive for WNV") 
@@ -227,7 +231,8 @@ ggplot(all_data, aes(x = avg_soil_t_2,
 ggplot(all_data, aes(x = WDMV, 
                      y = total_no_mos, color = pos_mos_no)) +
   geom_point() +
-  scale_color_gradient(low = "blue", high = "red") +
+  scale_color_gradient(low = "blue", high = "red", labels = comma) +
+  scale_y_continuous(labels = comma) +
   geom_smooth(se = FALSE, color = "black") +
   labs(x = "Max 24-h Wind Movement (miles)", y = "Mosquito Count",
        color = "Mosquitoes \nPositive for WNV")
@@ -236,8 +241,8 @@ ggplot(all_data, aes(x = WDMV,
 ggplot(all_data, aes(x = TMAX_avg, 
                      y = total_no_mos, color = pos_mos_no)) +
   geom_point() +
-  scale_color_gradient(low = "blue", high = "red") +
-  geom_smooth(se = FALSE, color = "black") +
+  scale_color_gradient(low = "blue", high = "red", labels = comma) +
+  scale_y_continuous(labels = comma) +
   labs(x = "Mean Maximum Temperature (°F)", y = "Mosquito Count",
        color = "Mosquitoes \nPositive for WNV")
 
@@ -246,7 +251,8 @@ ggplot(all_data, aes(x = TMAX_avg,
 ggplot(all_data, aes(x = TMIN_avg, 
                      y = total_no_mos, color = pos_mos_no)) +
   geom_point() +
-  scale_color_gradient(low = "blue", high = "red") +
+  scale_color_gradient(low = "blue", high = "red", labels = comma) +
+  scale_y_continuous(labels = comma) +
   geom_smooth(se = FALSE, color = "black") +
   labs(x = "Mean Minimum Temperature (°F)", y = "Mosquito Count",
        color = "Mosquitoes \nPositive for WNV")
@@ -256,7 +262,8 @@ ggplot(all_data, aes(x = TMIN_avg,
 ggplot(all_data, aes(x = precip_mean, 
                      y = total_no_mos, color = pos_mos_no)) +
   geom_point() +
-  scale_color_gradient(low = "blue", high = "red") +
+  scale_color_gradient(low = "blue", high = "red", labels = comma) +
+  scale_y_continuous(labels = comma) +
   geom_smooth(se = FALSE, color = "black") +
   labs(x = "Mean Precipitation (inches)", y = "Mosquito Count",
        color = "Mosquitoes \nPositive for WNV")
