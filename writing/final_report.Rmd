@@ -29,6 +29,7 @@ library(rpart)
 library(randomForest)
 library(rpart.plot)
 library(scales)
+library(gridExtra)
 ```
 
 
@@ -193,9 +194,8 @@ all_data <- left_join(final_mosquito, storm_events, by = c("year", "week")) %>%
 
 First we had to find the data we wanted to use from various sources. We then had to clean the data and modify it to a point where we could use it for what we had planned to do. We then wanted to examine the relationships among the variables.   
 
-```{r preliminary visualization, echo = FALSE, message = FALSE}
+```{r preliminary visualization, echo = FALSE, message = FALSE, fig.cap = "Relationships among Mean Temperature and Mosquito Count, Mean Temperature and Proportion of Positive Mosquitoes, Mean Precipitation and Mosquito Count, and Mean Soil Temperature and Mosquito count"}
 
-library(gridExtra)
 
 #average temp by mosquito count
 temp_count <- ggplot(all_data, aes(x = avg_temp, 
@@ -246,7 +246,7 @@ grid.arrange(precip_plot, soil_4, nrow = 2)
 
 Our correlation plot indicates that there is a positive association between the number of positive WNV mosquitoes and average soil temperature in 4 inch sod, average soil temperature in 2 inch bare soil, average temperature, and mean precipitation.
 
-```{r correlation_plot, echo = FALSE, fig.width = 7, fig.height = 7}
+```{r correlation_plot, echo = FALSE, fig.width = 6, fig.height = 6, fig.cap = "Correlation Plot for WNV Project"}
 
 # Remove columns with character values and malke pretty label names
 data_wo_char <- all_data %>%
@@ -299,7 +299,7 @@ linear_fit <- lm(mfp_testing$formula, train_all_data)
 The mean average error for the proportion of positive mosquitoes for the linear model was also calculated to be `r mae(model = linear_fit, data = test_all_data)`.  
 
 Decision tree learning looks at multiple observations to predict a conclusion based off of yes/no decisions about the data.  
-```{r regression_tree, echo = FALSE, message = FALSE, warning = FALSE}
+```{r regression_tree, echo = FALSE, message = FALSE, warning = FALSE, fig.cap = "Decision tree plot for WNV observations"}
 tree_fit <- rpart(prop_pos_mos ~ precip_mean + avg_soil_t_4 + avg_soil_t_2 + week + avg_temp,
   	method="class", data = train_all_data)
 
