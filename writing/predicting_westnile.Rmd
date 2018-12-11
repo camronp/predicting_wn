@@ -396,6 +396,7 @@ ggplot(impor_var, aes(x = reorder(variables, -MSE), y = MSE, fill = variables)) 
   xlab("Variables") +
   ggtitle("Importance of Random Forest Variables")
 
+
 forest_pre <- predict(forest_fit, data_frame(precip_mean = 0.078, avg_soil_t_4 = 72.1, avg_soil_t_2 = 200, week = 34, avg_temp = 75, WDMV = 5), type = "class")
 
 ```
