@@ -1,3 +1,8 @@
+# Predicting West Nile Virus
+
+Our goal was to build a predictive model that incorporates weather to provide early indications of the risk of WNV infection in Chicago, Illinois. 
+
+
 Data used in this project:
 
 https://data.cityofchicago.org/api/views/jqe8-8r6s/rows.csv?accessType=DOWNLOAD
