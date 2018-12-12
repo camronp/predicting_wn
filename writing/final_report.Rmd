@@ -322,7 +322,7 @@ Random Forest is similar to decision trees, but it is more robust in that it cre
 
 There was a large number of positive WNV tested mosquitos the 30th week of 2016. The dates for this time were July 25th through July 31st. The precipitation mean during that time was 0.467 inches. There is a negative association between the average soil temperatures (in both 2 inch bare soil and in 4 inch sod) and precipitation.  In 2016 there was an increase of funding for mosquito collection and a narrow weekly temperature range which could account for these differences. 
 
-WNV incidence goes up if the daily high temperature in the spring and early summer is warmer than 81 degrees more often than normal (ScienceNetLinks, 2018). This is because *Culex pipiens* will peak earlier and thus more WNV cases. In 2016, the average max temperature was ~82 degrees F in week 22 and continued to be near the 80's until week 39. There were 14 weeks in 2016 where the average high temperature was above 81 whereas there were only 10 and 11 weeks in 2017 and 2018, respectively, where the average high temperature was above 81.  
+WNV incidence goes up if the daily high temperature in the spring and early summer is warmer than 81 degrees more often than normal (ScienceNetLinks, 2018). This is because *Culex pipiens* will peak earlier and thus more WNV cases. In 2016, the average max temperature was ~82 degrees F in week 22 and continued to be near the 80's until week 39. There were 14 weeks in 2016 where the average high temperature was above 81 whereas there were only 10 and 11 weeks in 2017 and 2018, respectively, where the average high temperature was above 81. This data is easily visualized using a Shiny application that was created for the user to manipulate the data on the different x-y axis on a simple correlation plot. The online link to the app can be found at the end of this report.  
 
 For the prediction models it was also interesting that each of the models chose different variables that they deemed important in predicting the proportion of positive mosquitoes. The multivariate fractional polynomail and linear model used week and average temperature while the regression tree used week and average precipitation. Finally, random forest used all of the variables to a different degree to predict the proportion of positive mosquitoes.  
 
@@ -358,3 +358,7 @@ We also had a hard time conceptualizing exactly what we wanted to predict. We st
 Centers for Disease Control and Prevention (CDC). West Nile virus. November 28, 2018. Retrieved from: https://www.cdc.gov/westnile/index.html
 
 ScienceNetLInks. West Nile Weather. December 10, 2018. Retrieved from: http://sciencenetlinks.com/science-news/science-updates/west-nile-weather/
+
+### External Shiny Application:
+
+https://camronp.shinyapps.io/wnv_shiny_graphs/
