@@ -1,8 +1,9 @@
 ---
 title: "Final Project Report - Predicting West Nile Virus"
 author: "Group 3 - Camron Pearce, Amy Fox, Alyssa Melvin, Kayla Williams"
-date: "December 7, 2018"
+date: "December 12, 2018"
 output: pdf_document
+fig_caption: true
 ---
 
 ```{r setup, include=FALSE}
@@ -192,10 +193,9 @@ all_data <- left_join(final_mosquito, storm_events, by = c("year", "week")) %>%
 
 # How we tackled the problem
 
-First we had to find the data we wanted to use from various sources. We then had to clean the data and modify it to a point where we could use it for what we had planned to do. We then wanted to examine the relationships among the variables.   
+First we had to find the data we wanted to use from various sources. We then had to clean the data and modify it to a point where we could use it for what we had planned to do. We then wanted to examine the relationships among the variables. **Figure 1** shows the relationship among the mean temperature per week per year and the mosquito count per week per year and the temperature per week per year and the proportion of positive WNV mosquitoes per week per year. **Figure 2** shows the relationship among the mean precipitation per week per year and the mosquito count per week per year, also the mean soil temperature and the moquito count per week per year.   
 
-```{r preliminary visualization, echo = FALSE, message = FALSE, fig.cap = "Relationships among Mean Temperature and Mosquito Count, Mean Temperature and Proportion of Positive Mosquitoes, Mean Precipitation and Mosquito Count, and Mean Soil Temperature and Mosquito count"}
-
+```{r preliminary_visualization, echo = FALSE, message = FALSE, fig.cap = "Relationships among Mean Temperature and Mosquito Count and Mean Temperature and Proportion of Positive Mosquitoes"}
 
 #average temp by mosquito count
 temp_count <- ggplot(all_data, aes(x = avg_temp, 
@@ -219,7 +219,10 @@ temp_prop <- ggplot(all_data, aes(x = avg_temp,
 
 grid.arrange(temp_count, temp_prop, nrow = 2)
 
+```
 
+
+```{r prelim_visualization, echo = FALSE, message = FALSE, fig.cap = "Relationships among Mean Precipitation and Mosquito Count, and Mean Soil Temperature and Mosquito Count"}
 #avg soil temp 4 inch
 soil_4 <- ggplot(all_data, aes(x = avg_soil_t_4, 
                      y = total_no_mos, color = pos_mos_no)) +
@@ -241,14 +244,13 @@ precip_plot <- ggplot(all_data, aes(x = precip_mean,
        color = "# Mosquitoes \nPositive for WNV")
 
 grid.arrange(precip_plot, soil_4, nrow = 2)
-
 ```
 
 Our correlation plot indicates that there is a positive association between the number of positive WNV mosquitoes and average soil temperature in 4 inch sod, average soil temperature in 2 inch bare soil, average temperature, and mean precipitation.
 
 ```{r correlation_plot, echo = FALSE, fig.width = 6, fig.height = 6, fig.cap = "Correlation Plot for WNV Project"}
 
-# Remove columns with character values and malke pretty label names
+# Remove columns with character values and make pretty label names
 data_wo_char <- all_data %>%
   select(-event_type, -year, -TMIN_avg, -TMAX_avg, -WDMV) %>%
   rename("# of WNV mosquitoes"= pos_mos_no,
@@ -295,6 +297,7 @@ linear_fit <- lm(mfp_testing$formula, train_all_data)
 The mean average error for the proportion of positive mosquitoes for the linear model was also calculated to be `r mae(model = linear_fit, data = test_all_data)`.  
 
 Decision tree learning looks at multiple observations to predict a conclusion based off of yes/no decisions about the data.  
+
 ```{r regression_tree, echo = FALSE, message = FALSE, warning = FALSE, fig.cap = "Decision tree plot for WNV observations"}
 tree_fit <- rpart(prop_pos_mos ~ precip_mean + avg_soil_t_4 + avg_soil_t_2 + week + avg_temp,
   	method="class", data = train_all_data)
@@ -303,16 +306,20 @@ tree_fit <- rpart(prop_pos_mos ~ precip_mean + avg_soil_t_4 + avg_soil_t_2 + wee
 prp(tree_fit, main="Classification Tree for Predicting Proportion of Positive Mosquitoes",
     fallen.leaves = TRUE, varlen = 11, digits = 2)	
 ```
+
 For the regression tree model, the mean average error for the proportion of positive mosquitoes is be `r mae(model = tree_fit, data = test_all_data)`.  
 
 Random Forest is similar to decision trees, but it is more robust in that it creates many trees (in the case of our model, 500) and uses the mean prediction of all of the trees to predict an outcome. 
+
 ```{r random_forest, echo = FALSE, message = FALSE, warning = FALSE}
 
 # build random forest prediction model
-forest_fit <- randomForest(prop_pos_mos ~ precip_mean + avg_soil_t_4 + avg_soil_t_2 + week + avg_temp,
+forest_fit <- randomForest(prop_pos_mos ~ precip_mean + avg_soil_t_4 + 
+                             avg_soil_t_2 + week + avg_temp,
   	data = train_all_data, importance = TRUE)
 
 ```
+
 The random forest model, the mean average error for the proportion of positive mosquitoes is be `r mae(model = forest_fit, data = test_all_data)`.
 
 In the future it would have been interesting to add in our random forest prediction model to our shiny app where the user could input the temperature, precipitation, week, etc. and it would calculate both the expected total number of mosquitoes to be caught that week and the proportion of positive mosquitoes.
