@@ -75,11 +75,9 @@ final_mosquito_pretty <-  final_mosquito %>%
 kable(head(final_mosquito_pretty), align = "l")
 ```
 
-<<<<<<< HEAD
-When we were researching things that may influence WNV infection of mosquitoes, we found a paper that explained soil temperature, precipitation, wind speed, and relative humidity have some sort of association with WNV infected mosquitoes in Northern Greece. With that in mind, we chose NOAA weather data. We had quite a few columns which had mostly NAs so we wanted to filter it down to just precipitation for this particular project. We grouped the data by year and week and found the mean precipitation for that week and year. 
-=======
+
+
 When we were researching things that may influence WNV infection of mosquitos, we found a paper that explained soil temperature, precipitation, wind speed, and relative humidity have some sort of association with WNV infected mosquitos in Northern Greece. With that in mind, we chose Chicago, Illinois NOAA weather data with the parameters described in the paper. We had quite a few columns which had mostly NAs so we wanted to filter it down to just precipitation for this particular project. We grouped the data by year and week and found the mean precipitation for that week and year. 
->>>>>>> 65769a76d2888778339f4216a75b036f3ac0bd55
 
 ```{r weather_data, echo = FALSE, message = FALSE, warning = FALSE}
 weather_data <- 
